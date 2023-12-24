@@ -1,15 +1,5 @@
 # cattle class
 
-
-# def allTheNumbers(len):
-#     resultantList = [0]
-#     for x in range(1,len+1):
-#         resultantList.append(x)
-        
-#     return resultantList
-
-# print(allTheNumbers(16))
-
 class foolsBar():
     def __init__(self,raw):
         self.raw = raw
