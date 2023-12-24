@@ -13,8 +13,8 @@
 class foolsBar():
     def __init__(self,raw):
         self.raw = raw
-    def testArea(self):
-        return 'A'
+    def __str__(self) -> str:
+        pass
     def Too(self):
         if self.raw % 2 == 0:
             return 'Too'
