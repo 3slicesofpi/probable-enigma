@@ -29,7 +29,11 @@ class foolsBar():
         else:
             return 0
 
-for num in range(1, 1 + int(input(">"))):
-    here = foolsBar(num)
-    print(here.check2(),here.check3(),here.check4(),here.check5(),here.check7(),str(num)) #frontend,
+def PrimeChecker(raw):
+    here = foolsBar(raw)
+    if ((here.check2() and here.check3()) and (here.check5() and here.check7())) == 0:
+        return True
+    else:
+        return False
 
+print(str(PrimeChecker(13)))
