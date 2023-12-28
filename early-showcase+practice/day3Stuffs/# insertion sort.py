@@ -1,5 +1,5 @@
 # insertion sort
-raw = [15,16,18,19]
+raw = [21,3,45,10]
 
 
 def sortArea(array,key):
@@ -17,5 +17,12 @@ def sortArea(array,key):
             here -= 1
         
     return array
+    
+def insertionSort(raw):
+    long = len(raw)
+    for iters in range(long):
+        raw = sortArea(raw[:iters],raw[iters]) + raw[(iters+1):] # <--- unsorted
+    return raw
+
+print(insertionSort(raw))
         
-print(sortArea(raw,14))
