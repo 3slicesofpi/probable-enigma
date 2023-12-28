@@ -1,0 +1,21 @@
+# insertion sort
+raw = [15,16,18,19]
+
+
+def sortArea(array,key):
+    done = False
+    here = len(array)-1
+    while (done != True):
+        if here == -1:
+            array.insert(0,key)
+            done = True
+        elif key >= array[here]:
+            print(str(here))
+            array.insert(here+1,key)
+            done = True
+        else:
+            here -= 1
+        
+    return array
+        
+print(sortArea(raw,14))

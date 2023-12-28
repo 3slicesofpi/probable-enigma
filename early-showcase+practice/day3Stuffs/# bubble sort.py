@@ -13,7 +13,6 @@ def bubbleSort(raw):
 
 bubbleSort(raw)
 
-
 final = ""
 for target in raw:
     final = (final + " " + str(target)) # additional load burden
