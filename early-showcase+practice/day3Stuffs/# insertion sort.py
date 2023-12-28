@@ -10,7 +10,6 @@ def sortArea(array,key):
             array.insert(0,key)
             done = True
         elif key >= array[here]:
-            print(str(here))
             array.insert(here+1,key)
             done = True
         else:
