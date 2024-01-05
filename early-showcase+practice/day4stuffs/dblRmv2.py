@@ -8,7 +8,7 @@ def dblRmv(raw):
         if raw[iterate] == raw[iterate+1]:
             raw.remove(raw[iterate+1])
         else:
-            iterate += 1        
+            iterate += 1
     return raw
 
 print(dblRmv(raw))
