@@ -4,3 +4,4 @@ thisdict = {'length': 120,
             'slice': False}
 
 print(thisdict['length'])
+print(list(thisdict))

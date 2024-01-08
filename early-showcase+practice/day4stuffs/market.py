@@ -22,6 +22,10 @@ def clientMenuSelect():
     else:
         help()
 
+def catFormatter(theDict):
+    theList = list(theDict)
+    for iteration in theDict:
+        print(theDict[iteration][0]+' at $'+str(theDict[iteration][1]))
 
 def dir():
     uc(1)
@@ -36,7 +40,7 @@ def take():
     clientMenuSelect()
 
 def cart():
-    print(clientCat)
+    catFormatter(clientCat)
     clientMenuSelect()
 
 def checkout():
