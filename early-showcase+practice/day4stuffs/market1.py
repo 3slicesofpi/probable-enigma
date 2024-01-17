@@ -4,6 +4,14 @@ def clientCatFormatter(clientCat):
     for iteration in clientCat:
         print(str(iteration)+'.',clientCat[iteration][0],'at $'+str(clientCat[iteration][1]))
     return
+def clientTakeFormatter(clientInput):
+    clientCat[len(clientCat)+1] = shopCat[clientInput[5:]]
+    print('you have taken a',shopCat[clientInput[5:]][0])
+    if clientInput[(len(clientInput)-1):] == ',':
+        clientArgs = input('>: ')
+        
+
+
 def help():
     print('''
 instructions:
@@ -14,7 +22,7 @@ help:   <--- you are here!
     see the full list of commands.
 catalog:
     see our huge catalog of 14 items!
-take [PRODUCT_NUMBER]:
+take:
     place an item from our catalog and into your cart.
 cart:
     view the contents of your cart.
@@ -32,9 +40,9 @@ def clientMenuSelect():
             print('we have:') 
             clientCatFormatter(shopCat)
             print('press >:"take", followed by the product number of the thing you want to take.')
+            clientMenuSelect()
         elif clientInput[2] == 'k': #take
-            clientCat[len(clientCat)+1] = shopCat[clientInput[5:]]
-            print('you have taken a',shopCat[clientInput[5:]][0])
+            clientTakeFormatter()
             clientMenuSelect()
         elif clientInput[2] == 'r': #cart
             print('the things in your cart are:')
