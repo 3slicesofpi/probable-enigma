@@ -2,8 +2,8 @@ catalog = [{"product": "Black beans", "price": 5.98, "quantity": 4600}, {"produc
 cart = []
 
 # todo hard: add squisher (removes duplicates) (use dict())
-# todo easy: add checkout
-# todo hard: add search-it
+# todo hard: add search-it (haha regex)
+# todo zzzz: add id system
 
 
 from math import ceil 
@@ -70,30 +70,81 @@ def menuTakeItem():
         print('You placed',cart[-1]['quantity'],cart[-1]['product'],'in your cart.')
     return
 
+def menuReturnItem(): #untested
+    clientArgs = {'code':0,'quantity':0}
+    print('please specify which item you want to put back.')
+    clientArgs['code'] = int(input('>>>:'))
+    if clientArgs['code']> len(cart):
+        print('Invalid product code. Remember, the code for products in cart will be different.')
+        return
+    print('how many of',cart[clientArgs['code']]['product'],'do you want to return?')
+    print('tip: press "a" to return all or "c" to cancel.')
+    clientInput = input('>>::')
+    try:
+        if clientInput[0] == 'c':
+            print('return process cancelled, returning to MAIN MENU')
+        elif clientInput[0] == 'a':
+            print('')
+            cart[clientArgs['code']]['quantity']=clientArgs['quantity']
+        else:
+            clientArgs['quantity'] = int(clientInput)
+    except:
+        print('Invalid Command. Try again.')
+    if cart[clientArgs['code']]['quantity']>clientArgs["quantity"]:
+        cart[clientArgs['code']]['quantity']=clientArgs["quantity"]
+    cart[clientArgs['code']]['quantity']-=clientArgs["quantity"]
+    print('There are now',cart[clientArgs['code']]['quantity'],cart[clientArgs['code']]['product'],'left in your cart.')
+    return
+
+def menuCheckOut():
+    numofItems = 0
+    totalPrice = 0
+    for here in cart:
+        print(here['quantity'],here['product'],'at',(here['quantity']*here['price']))
+        numofItems += here['quantity']
+        totalPrice += (here['price']*here['quantity'])
+    print('')
+    print('There are',numofItems,'in your cart with a combined value of',totalPrice)
+    totalPrice = float(totalPrice*(9/100))
+    print('After 9% Tax, you will pay',str(totalPrice))
+    if input('Proceed with payment?')[0] == 'y':
+        print('Thank you for shopping with us!')
+        exit()
+    else:
+        print('checkout process cancelled, returning to MAIN MENU')
+        return
+
+def cartBecomesEmpty(): # the items are NOT RETURNED
+    for here in range(0,len(cart)):
+        cart[here]['quantity'] = 0
+    print(cart)
+    return
+    
+
 def menuHelp():
     print('''
-    welcome to the HELP MENU
-    Basic Commands:
+welcome to the HELP MENU
+Basic Commands:
      
-    'l'/'lookcart': Look into your cart. 
-    'b'/'browsers': Browse our huge catalog.
-    'c'/'checkout': Purchase the items in your cart.
-    't'/'takeitem': Take a product from our catalog.
-    'r'/'returnit': Return a product from your cart.
-    'p'/'purgeall': Remove all items from your cart.
-    'h'/'helpshop': Get help.
-    'e'/'enditall': Exit the program.
+'l'/'lookcart': Look into your cart. 
+'b'/'browsers': Browse our huge catalog.
+'c'/'checkout': Purchase the items in your cart.
+'t'/'takeitem': Take a product from our catalog.
+'r'/'returnit': Return a product from your cart.
+'p'/'purgeall': Remove all items from your cart.
+'h'/'helpshop': Get help.
+'e'/'enditall': Exit the program.
           
-    Happy Shopping!
+Happy Shopping!
     
-    returning you to the main menu...
+returning you to the main menu...
     ''')
     return
 
 def menuMain(): #return to this after every cycle.
     print("""
-    welcome to the MAIN MENU
-    To continue, press a command or press 'h' for help.
+welcome to the MAIN MENU
+To continue, press a command or press 'h' for help.
     """)
     clientInput = input('Input a command >>>:')
     if clientInput == '':
@@ -105,15 +156,14 @@ def menuMain(): #return to this after every cycle.
         menuCatalogs()
         return
     elif clientInput[0] == 'c':
-        return # unfinished
+        menuCheckOut()
+        return
     elif clientInput[0] == 't':
         menuTakeItem()
     elif clientInput[0] == 'r':
-        return
-    elif clientInput[0] == 'p': #bugged.
-        cart = []
-        print('your cart is now empty.')
-        return
+        menuReturnItem()
+    elif clientInput[0] == 'p': 
+        cartBecomesEmpty() # temp
     elif clientInput[0] == 'h':
         menuHelp()
     elif (clientInput[0] == 'e') or (clientInput[0] == '&'):
