@@ -6,9 +6,15 @@ cart = [{"product": "Black beans", "price": 5.98, "quantity": 0}, {"product": "K
 # todo     : remove empty elements at frontend (quantity == 0)
 
 
-
 from math import ceil 
-def listFormatter(theList): # this does well
+def listFormatter(theList):
+    # remove quan = 0
+    newList = [None]
+    for here in theList:
+        if here['quantity'] == 0:
+            pass
+        else:
+            newList.append(here)
     # frontend
     pageSelected = 0
     print("""
@@ -22,27 +28,24 @@ press any of the following keys to continue:
 Alternatively, you can use the number keys to navigate through the pages.
 """)
     while True:
-        if (pageSelected*10+10)<len(theList)+1:
+        if (pageSelected*10+10)<len(newList)+1:
             pageMax = (pageSelected*10)+10
         else:
-            pageMax = len(theList)
+            pageMax = len(newList)
         for iteration in range(pageSelected*10,pageMax):
-            print(str(iteration)+'.',theList[iteration]['quantity'],theList[iteration]['product'],'at $',theList[iteration]['price'],'each')
-        print('you are at page:',(pageSelected+1), 'out of', (ceil(len(theList)/10)))
+            print(newList[iteration])
+        print('you are at page:',(pageSelected+1), 'of', (ceil(len(newList)/10)))
         clientInput = input('input a command >:::')
-        try:
-            if clientInput[0] == 'e':
-                return
-            elif clientInput[0] == 'n':
-                pageSelected += 1
-            elif clientInput[0] == 'b':
-                pageSelected -= 1
-            else:
-                pageSelected = int(clientInput)-1
-        except ValueError:
-            print('caught error: ValueError: Write a valid command.')
-        if (pageSelected < 0) or (pageSelected > ceil(len(theList)/10)-1):
-                pageSelected = 0
+        if clientInput == 'e':
+            exit()
+        elif clientInput == 'n':
+            pageSelected += 1
+        elif clientInput == 'b':
+            pageSelected -= 1
+        else:
+            pageSelected = int(clientInput)-1
+        if (pageSelected < 0) or (pageSelected > ceil(len(newList)/10)-1):
+            pageSelected = 0
 
 def menuLookCart():
     listFormatter(cart)
