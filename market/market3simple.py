@@ -3,7 +3,6 @@ cart = [{"product": "Black beans", "price": 5.98, "quantity": 0}, {"product": "K
 
 # todo easy: add purgeall
 # todo hard: add search-it (haha regex)
-# todo     : remove empty elements at frontend (quantity == 0)
 
 
 from math import ceil 
@@ -37,7 +36,7 @@ Alternatively, you can use the number keys to navigate through the pages.
         print('you are at page:',(pageSelected+1), 'of', (ceil(len(newList)/10)))
         clientInput = input('input a command >:::')
         if clientInput == 'e':
-            exit()
+            return
         elif clientInput == 'n':
             pageSelected += 1
         elif clientInput == 'b':
@@ -117,10 +116,10 @@ def menuCheckOut():
         print('checkout process cancelled, returning to MAIN MENU')
         return
 
-def cartBecomesEmpty(): # the items are NOT RETURNED
+def cartBecomesEmpty():
     for here in range(0,len(cart)):
+        catalog[here]['quantity'] = cart[here]['quantity']
         cart[here]['quantity'] = 0
-    print(cart)
     return
     
 
