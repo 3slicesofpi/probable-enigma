@@ -1,8 +1,9 @@
+from math import ceil
 def menuListFormatter(listRaw,listName):
-    # remove quan = 0
+    # remove quan = 0 elements
     newList = [None]
     for here in listRaw:
-        if here['quantity'] == 0: #FIX!!!!!
+        if here['quantity'] == 0:
             pass
         else:
             newList.append(here)   
@@ -10,11 +11,88 @@ def menuListFormatter(listRaw,listName):
     if len(newList) <= 1:
         newList[0] = {'name': 'There is nothing here... Press "e" to return or "h" for help.','category':'Empty:'}
     else:
-        pass
+        newList.remove(None)
+    
+    # pageviewer
+    pageviewMode = 0
+    pageSelected = 0
+    while True:
+        pageList = [] # contains things shown to client. emptied after use.
+        if pageSelected < 0:
+            pageSelected = ceil(len(newList)/10)-1
+        elif pageSelected > ceil(len(newList)/10)-1:
+            pageSelected = 0
+        
+        if pageviewMode == 0:
+            maxPage = (pageSelected*10)+10
+            if maxPage > len(newList):
+                maxPage = len(newList)
+            else:
+                pass
+            for here in range(pageSelected*10,maxPage-1):
+                pageList.append(newList[here])
+            print('You are currently on page',(pageSelected+1),'of',(ceil(len(newList)/10)))
+        elif pageviewMode == 1:
+            if pageSelected < 0:
+                pageSelected = len(categoryList)-1
+                print(pageSelected) # FIXME (minor pronlem)
+            elif pageSelected > len(categoryList)-1:
+                pageSelected = 0
 
-    print(newList)
+            for elements in newList: # temporary fix
+                if elements['category'] == categoryList[pageSelected]:
+                    pageList.append(elements)
+            print('You are now viewing the category',categoryList[pageSelected])
+        
 
-    \
+        # now the client can touch the data
+        for items in pageList:
+            print(items)
+        clientInput = input('Press a command to continue or press "h" for help. >>>:')
+        if clientInput[0] == 'h':
+            menuHelp('menuListFormatter')
+        elif clientInput[0] == 'v':
+            menuNav('menuListFormatter')
+        elif clientInput[0] == 'e':
+            return
+        elif clientInput[0] == 'b':
+            pageSelected -= 1
+        elif clientInput[0] == 'n':
+            pageSelected += 1
+        elif clientInput[0] == 'm':
+            pageviewMode += 1
+            pageSelected = 0
+        else:
+            try:
+                pageSelected = int(clientInput)-1
+            except ValueError:
+                print('Invalid Input! Returning you to the MAIN MENU')
+                return
+            except:
+                print('An error has occurred. Returning you to the MAIN MENU .')
+                return
+        if pageviewMode > 1: 
+            pageviewMode = 0
+
+
+def menuCheckOut():
+    numofItems = 0
+    totalPrice = 0
+    for here in cart:
+        if here['quantity'] != 0:
+            print(here['quantity'],here['product'],'at',(here['quantity']*here['price']))
+            numofItems += here['quantity']
+            totalPrice += (here['price']*here['quantity'])
+    print('')
+    print('There are',numofItems,'in your cart with a combined value of',totalPrice)
+    totalPrice = float(totalPrice*(9/100))
+    print('After 9% Tax, you will pay',str(totalPrice))
+    if input('Proceed with payment?')[0] == 'y':
+        print('Thank you for shopping with us!')
+        exit()
+    else:
+        print('checkout process cancelled, returning to MAIN MENU .')
+        return
 
 def menuNav(clientMenuPos): # simple position teller
     print('You are currently at:',clientMenuPos)
@@ -51,10 +129,12 @@ Pageviewer commands:
 
 'b'/'backpage': Go to the previous page.
 'n'/'nextpage': Go to the next page.
-'e'/'exitmenu': Return to the MAIN MENU
+'e'/'exitmenu': Return to the MAIN MENU .
+'m'/'modemenu': Change the pageviewer mode.
 
 Alternatively, you can use the number keys to navigate through the pages.
 ''')
+    return
 
 
 
@@ -86,7 +166,7 @@ def menuMain(): #return to this after every cycle.
     elif clientInput[0] == 'h':
         menuHelp('menuMain')
         return
-    elif clientInput[0] == 'n':
+    elif clientInput[0] == 'v':
         menuNav('menuMain')
         return
     elif (clientInput[0] == 'e') or (clientInput[0] == '&'):
@@ -94,7 +174,7 @@ def menuMain(): #return to this after every cycle.
     else:
         print('Invalid Command. Try again or press "h" for help.')
         return
-# TODD list
+# TODO list
     # make all the menus again
     # populate menuHelp
     # make menuReturnItem and menuTakeItem merged
@@ -337,6 +417,7 @@ cart =[
     {"name": "Garlic powder", "price": 2.79, "quantity": 0, "category": "Spice and Seasoning"}
 ]
 
+categoryList = ('Canned Good','Pasta and Grain','Baking Essential','Breakfast Item','Snack','Condiment','Cooking Oil and Sauce','Spice and Seasoning')
 # loop. Breaks on exit().
 while True:
     menuMain()
