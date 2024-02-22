@@ -1,3 +1,37 @@
+
+def cartBecomesEmpty(): # fast and efficient, unlike menuMoveItem(lF,lT,None,None)
+    for here in range(0,len(cart)):
+        catalog[here]['quantity'] = cart[here]['quantity']
+        cart[here]['quantity'] = 0
+    return
+
+def menuMoveItem(listFrom, listTo, clientArgCode, clientArgQuantity): # bad, bad, bad! make better asap!
+    # clientArgCode and clientArgQuantity set to None if no args given.
+    # moving client args to clientArgs dict.
+    clientArgs = {'code':0 ,'quantity':0}
+    if clientArgCode != None:
+        clientArgs['code'] = clientArgCode
+    else:
+        clientArgs['code'] = int(input('Type the code of the item you want to transfer >>>:'))-1
+    # we're using the dict, not the entire list.
+    dictFrom = listFrom[clientArgs['code']] # listFrom, listTo still exists in mem btw!
+    dictTo = listTo[clientArgs['code']] # this is bad, but is the best we can do
+    if clientArgQuantity != None:
+        clientArgs['quantity'] = clientArgQuantity
+    else:
+        print('There are',dictFrom['quantity'],dictFrom['name'])
+        print('Type the number of',dictFrom['name'],'you want to transfer.')
+        clientArgs['quantity'] = int(input('>>>:'))
+    if clientArgs['quantity'] > (dictFrom['quantity']):
+        print('We do not have enough',dictFrom['product']+'.')
+        print('We only have',str(dictFrom['quantity']),'in our shop.')
+    else:
+        dictFrom['quantity'] -= clientArgs['quantity']
+        dictTo['quantity'] += clientArgs['quantity'] 
+        print('Transfer successful. Returning you to MAIN MENU .')
+    return (dictFrom, dictTo)
+
+
 from math import ceil
 def menuListFormatter(listRaw,listName):
     # remove quan = 0 elements
@@ -36,6 +70,7 @@ def menuListFormatter(listRaw,listName):
             if pageSelected < 0:
                 pageSelected = len(categoryList)-1
                 print(pageSelected) # FIXME (minor pronlem)
+                # small problem with page not returning to max properly.
             elif pageSelected > len(categoryList)-1:
                 pageSelected = 0
 
@@ -114,9 +149,13 @@ Basic Commands:
 't'/'takeitem': Take a product from our catalog.
 'r'/'returnit': Return a product from your cart.
 'p'/'purgeall': Remove all items from your cart.
+'s'/'searchit': Find the code for a product.
 'h'/'helpshop': Get help.
 'e'/'enditall': Exit the program.
           
+Tip : use 'v' to know where you are at all times! 
+    Available only in menus.
+              
 Happy Shopping!
 ''')
     elif clientMenuPos == 'menuListFormatter':
@@ -140,7 +179,6 @@ Alternatively, you can use the number keys to navigate through the pages.
 
 def menuMain(): #return to this after every cycle.
     
-
     # input area
     clientInput = input('Press a command to continue or press "h" for help. >>>:')
     if clientInput == '':
@@ -155,10 +193,10 @@ def menuMain(): #return to this after every cycle.
         menuCheckOut()
         return
     elif clientInput[0] == 't':
-        menuTakeItem()
+        menuMoveItem(catalog,cart,None,None)
         return
     elif clientInput[0] == 'r':
-        menuReturnItem() # the reverse of menuTakeItem(), mergetim TODD
+        menuMoveItem(cart,catalog,None,None)
         return
     elif clientInput[0] == 'p': 
         cartBecomesEmpty()
@@ -169,6 +207,8 @@ def menuMain(): #return to this after every cycle.
     elif clientInput[0] == 'v':
         menuNav('menuMain')
         return
+    elif clientInput[0] == 's':
+        menuSearchCode()
     elif (clientInput[0] == 'e') or (clientInput[0] == '&'):
         exit()
     else:
@@ -177,7 +217,7 @@ def menuMain(): #return to this after every cycle.
 # TODO list
     # make all the menus again
     # populate menuHelp
-    # make menuReturnItem and menuTakeItem merged
+    # search by name (searchit) look for products and catagory
     # make advanced(tm) number taker
     # dealz und salez (admin?, rng?, prebuilt?)
 
