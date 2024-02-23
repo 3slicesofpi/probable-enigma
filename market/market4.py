@@ -1,11 +1,12 @@
 
+
 def cartBecomesEmpty(): # fast and efficient, unlike menuMoveItem(lF,lT,None,None)
     for here in range(0,len(cart)):
         catalog[here]['quantity'] = cart[here]['quantity']
         cart[here]['quantity'] = 0
     return
 
-def menuMoveItem(listFrom, listTo, clientArgCode, clientArgQuantity): # bad, bad, bad! make better asap!
+def menuMoveItem(listFrom, listTo, clientArgCode, clientArgQuantity): # is improvable
     # clientArgCode and clientArgQuantity set to None if no args given.
     # moving client args to clientArgs dict.
     clientArgs = {'code':0 ,'quantity':0}
@@ -37,10 +38,8 @@ def menuListFormatter(listRaw,listName):
     # remove quan = 0 elements
     newList = [None]
     for here in listRaw:
-        if here['quantity'] == 0:
-            pass
-        else:
-            newList.append(here)   
+        if here['quantity'] != 0:
+            newList.append(here)
     # when nothing in cart/catalog
     if len(newList) <= 1:
         newList[0] = {'name': 'There is nothing here... Press "e" to return or "h" for help.','category':'Empty:'}
@@ -82,7 +81,7 @@ def menuListFormatter(listRaw,listName):
 
         # now the client can touch the data
         for items in pageList:
-            print(items)
+            print(items['position'],':',items['quantity'],items['name']+'(s) at',items['price'],'each')
         clientInput = input('Press a command to continue or press "h" for help. >>>:')
         if clientInput[0] == 'h':
             menuHelp('menuListFormatter')
@@ -115,7 +114,7 @@ def menuCheckOut():
     totalPrice = 0
     for here in cart:
         if here['quantity'] != 0:
-            print(here['quantity'],here['product'],'at',(here['quantity']*here['price']))
+            print(here['quantity'],here['name'],'at',(here['quantity']*here['price']))
             numofItems += here['quantity']
             totalPrice += (here['price']*here['quantity'])
     print('')
@@ -172,51 +171,60 @@ Pageviewer commands:
 'm'/'modemenu': Change the pageviewer mode.
 
 Alternatively, you can use the number keys to navigate through the pages.
+              
+Each item has a 'code' that you must type in takeitem/returnit to transfer items.
 ''')
     return
 
 
-
+import re
 def menuMain(): #return to this after every cycle.
     
     # input area
-    clientInput = input('Press a command to continue or press "h" for help. >>>:')
+    clientRaw = input('Press a command to continue or press "h" for help. >>>:')
+    clientInput = re.split(',',clientRaw)
+    if len(clientInput) == 1:
+        clientInput.append(None)
+        clientInput.append(None)
+    elif len(clientInput) == 2:
+        clientInput.append(None)
+    else:
+        pass
+    print(clientInput)
     if clientInput == '':
         print('No command given. Try again')
-    elif clientInput[0] == 'l':
+    elif clientInput[0][0] == 'l':
         menuListFormatter(cart,'Cart')
         return
-    elif clientInput[0] == 'b':
+    elif clientInput[0][0] == 'b':
         menuListFormatter(catalog,'Catalog')
         return
-    elif clientInput[0] == 'c':
+    elif clientInput[0][0] == 'c':
         menuCheckOut()
         return
-    elif clientInput[0] == 't':
-        menuMoveItem(catalog,cart,None,None)
+    elif clientInput[0][0] == 't':
+        menuMoveItem(catalog,cart,int(clientInput[1]),int(clientInput[2]))
         return
-    elif clientInput[0] == 'r':
-        menuMoveItem(cart,catalog,None,None)
+    elif clientInput[0][0] == 'r':
+        menuMoveItem(cart,catalog,int(clientInput[1]),int(clientInput[2]))
         return
-    elif clientInput[0] == 'p': 
+    elif clientInput[0][0] == 'p': 
         cartBecomesEmpty()
         return
-    elif clientInput[0] == 'h':
+    elif clientInput[0][0] == 'h':
         menuHelp('menuMain')
         return
-    elif clientInput[0] == 'v':
+    elif clientInput[0][0] == 'v':
         menuNav('menuMain')
         return
-    elif clientInput[0] == 's':
+    elif clientInput[0][0] == 's':
         menuSearchCode()
-    elif (clientInput[0] == 'e') or (clientInput[0] == '&'):
+    elif (clientInput[0][0] == 'e') or (clientInput[0][0] == '&'):
         exit()
     else:
         print('Invalid Command. Try again or press "h" for help.')
         return
 # TODO list
-    # make all the menus again
-    # populate menuHelp
     # search by name (searchit) look for products and catagory
     # make advanced(tm) number taker
     # dealz und salez (admin?, rng?, prebuilt?)
@@ -225,239 +233,12 @@ def menuMain(): #return to this after every cycle.
 
 # general working area
 catalog = [
-    {"name": "Chicken noodle soup", "price": 3.99, "quantity": 500, "category": "Canned Good"},
-    {"name": "Tomato soup", "price": 2.49, "quantity": 700, "category": "Canned Good"},
-    {"name": "Vegetable soup", "price": 2.79, "quantity": 600, "category": "Canned Good"},
-    {"name": "Tuna", "price": 1.99, "quantity": 900, "category": "Canned Good"},
-    {"name": "Canned salmon", "price": 4.99, "quantity": 300, "category": "Canned Good"},
-    {"name": "Canned sardines", "price": 3.29, "quantity": 400, "category": "Canned Good"},
-    {"name": "Canned vegetables", "price": 1.89, "quantity": 800, "category": "Canned Good"},
-    {"name": "Canned peach", "price": 2.39, "quantity": 700, "category": "Canned Good"},
-    {"name": "Canned pear", "price": 2.19, "quantity": 600, "category": "Canned Good"},
-    {"name": "Canned pineapple", "price": 2.99, "quantity": 500, "category": "Canned Good"},
-    {"name": "Canned corn", "price": 1.59, "quantity": 800, "category": "Canned Good"},
-    {"name": "Canned green bean", "price": 1.79, "quantity": 700, "category": "Canned Good"},
-
-    {"name": "Spaghetti", "price": 1.99, "quantity": 1000, "category": "Pasta and Grain"},
-    {"name": "Penne", "price": 1.79, "quantity": 1100, "category": "Pasta and Grain"},
-    {"name": "White rice", "price": 2.49, "quantity": 900, "category": "Pasta and Grain"},
-    {"name": "Brown rice", "price": 2.69, "quantity": 800, "category": "Pasta and Grain"},
-    {"name": "Quinoa", "price": 4.99, "quantity": 500, "category": "Pasta and Grain"},
-    {"name": "Oats", "price": 1.89, "quantity": 1200, "category": "Pasta and Grain"},
-    {"name": "Lentil", "price": 1.29, "quantity": 1300, "category": "Pasta and Grain"},
-    {"name": "Split pea", "price": 1.39, "quantity": 1400, "category": "Pasta and Grain"},
-    {"name": "Pasta", "price": 1.59, "quantity": 1100, "category": "Pasta and Grain"},
-    {"name": "Rice", "price": 1.49, "quantity": 1200, "category": "Pasta and Grain"},
-    {"name": "Beans", "price": 1.29, "quantity": 1300, "category": "Pasta and Grain"},
-    {"name": "Barley", "price": 2.19, "quantity": 1000, "category": "Pasta and Grain"},
-    {"name": "Couscous", "price": 2.29, "quantity": 900, "category": "Pasta and Grain"},
-    {"name": "Farro", "price": 3.49, "quantity": 600, "category": "Pasta and Grain"},
-    {"name": "Orzo", "price": 2.09, "quantity": 1100, "category": "Pasta and Grain"},
-
-    {"name": "Flour", "price": 3.49, "quantity": 700, "category": "Baking Essential"},
-    {"name": "Sugar", "price": 2.99, "quantity": 800, "category": "Baking Essential"},
-    {"name": "Baking powder", "price": 1.79, "quantity": 900, "category": "Baking Essential"},
-    {"name": "Baking soda", "price": 1.69, "quantity": 1000, "category": "Baking Essential"},
-    {"name": "Cornstarch", "price": 2.29, "quantity": 800, "category": "Baking Essential"},
-    {"name": "Cake mix", "price": 2.99, "quantity": 700, "category": "Baking Essential"},
-    {"name": "Cocoa powder", "price": 3.79, "quantity": 600, "category": "Baking Essential"},
-    {"name": "Vanilla extract", "price": 4.99, "quantity": 500, "category": "Baking Essential"},
-
-    {"name": "Breakfast cereal", "price": 3.49, "quantity": 700, "category": "Breakfast Item"},
-    {"name": "Granola", "price": 4.29, "quantity": 600, "category": "Breakfast Item"},
-    {"name": "Instant noodles", "price": 1.99, "quantity": 1000, "category": "Breakfast Item"},
-    {"name": "Macaroni and cheese", "price": 2.79, "quantity": 900, "category": "Breakfast Item"},
-    {"name": "Instant soup cup", "price": 2.39, "quantity": 1100, "category": "Breakfast Item"},
-    {"name": "Pancake mix", "price": 3.29, "quantity": 800, "category": "Breakfast Item"},
-    {"name": "Muffin mix", "price": 2.99, "quantity": 700, "category": "Breakfast Item"},
-    {"name": "Instant oatmeal", "price": 2.19, "quantity": 1200, "category": "Breakfast Item"},
-
-    {"name": "Assorted Nut", "price": 5.49, "quantity": 500, "category": "Snack"},
-    {"name": "Trail mix", "price": 4.99, "quantity": 600, "category": "Snack"},
-    {"name": "Cracker", "price": 2.49, "quantity": 800, "category": "Snack"},
-    {"name": "Popcorn", "price": 3.29, "quantity": 700, "category": "Snack"},
-    {"name": "Nut bar", "price": 1.99, "quantity": 1000, "category": "Snack"},
-    {"name": "Granola bar", "price": 2.29, "quantity": 900, "category": "Snack"},
-    {"name": "Pretzel", "price": 1.79, "quantity": 1100, "category": "Snack"},
-    {"name": "Rice cake", "price": 1.49, "quantity": 1200, "category": "Snack"},
-
-    {"name": "Mustard", "price": 1.99, "quantity": 700, "category": "Condiment"},
-    {"name": "Mayonnaise", "price": 3.49, "quantity": 800, "category": "Condiment"},
-    {"name": "BBQ sauce", "price": 2.79, "quantity": 900, "category": "Condiment"},
-    {"name": "Soy sauce", "price": 2.29, "quantity": 1000, "category": "Condiment"},
-    {"name": "Worcestershire sauce", "price": 2.99, "quantity": 800, "category": "Condiment"},
-    {"name": "Hot sauce", "price": 1.99, "quantity": 700, "category": "Condiment"},
-    {"name": "Teriyaki sauce", "price": 3.29, "quantity": 600, "category": "Condiment"},
-    {"name": "Fish sauce", "price": 2.49, "quantity": 500, "category": "Condiment"},
-
-    {"name": "Olive oil", "price": 6.99, "quantity": 700, "category": "Cooking Oil and Sauce"},
-    {"name": "Vegetable oil", "price": 4.49, "quantity": 800, "category": "Cooking Oil and Sauce"},
-    {"name": "Pasta sauce", "price": 3.29, "quantity": 900, "category": "Cooking Oil and Sauce"},
-    {"name": "Soybean oil", "price": 5.49, "quantity": 1000, "category": "Cooking Oil and Sauce"},
-    {"name": "Canola oil", "price": 4.99, "quantity": 800, "category": "Cooking Oil and Sauce"},
-    {"name": "Sesame oil", "price": 7.99, "quantity": 700, "category": "Cooking Oil and Sauce"},
-    {"name": "Alfredo sauce", "price": 3.79, "quantity": 600, "category": "Cooking Oil and Sauce"},
-    {"name": "Marinara sauce", "price": 3.49, "quantity": 500, "category": "Cooking Oil and Sauce"},
-
-    {"name": "Salt", "price": 1.29, "quantity": 1000, "category": "Spice and Seasoning"},
-    {"name": "Pepper", "price": 2.49, "quantity": 1100, "category": "Spice and Seasoning"},
-    {"name": "Oregano", "price": 1.79, "quantity": 900, "category": "Spice and Seasoning"},
-    {"name": "Cumin", "price": 2.99, "quantity": 800, "category": "Spice and Seasoning"},
-    {"name": "Paprika", "price": 1.99, "quantity": 1200, "category": "Spice and Seasoning"},
-    {"name": "Chili powder", "price": 2.29, "quantity": 1300, "category": "Spice and Seasoning"},
-    {"name": "Cinnamon", "price": 1.59, "quantity": 1400, "category": "Spice and Seasoning"},
-    {"name": "Garlic powder", "price": 2.79, "quantity": 1500, "category": "Spice and Seasoning"},
-
-    {"name": "Coffee", "price": 6.99, "quantity": 800, "category": "Beverage"},
-    {"name": "Tea", "price": 4.99, "quantity": 900, "category": "Beverage"},
-    {"name": "Fruit juice", "price": 3.49, "quantity": 1000, "category": "Beverage"},
-    {"name": "Powdered milk", "price": 5.99, "quantity": 1100, "category": "Beverage"},
-    {"name": "Evaporated milk", "price": 2.49, "quantity": 900, "category": "Beverage"},
-    {"name": "Hot chocolate mix", "price": 4.29, "quantity": 800, "category": "Beverage"},
-    {"name": "Lemonade mix", "price": 3.79, "quantity": 700, "category": "Beverage"},
-    {"name": "Energy drink", "price": 2.99, "quantity": 600, "category": "Beverage"},
-
-    {"name": "Honey", "price": 7.99, "quantity": 700, "category": "Sweetener"},
-    {"name": "Maple syrup", "price": 9.99, "quantity": 600, "category": "Sweetener"},
-    {"name": "Sugar", "price": 2.99, "quantity": 800, "category": "Sweetener"},
-    {"name": "Agave syrup", "price": 8.99, "quantity": 700, "category": "Sweetener"},
-    {"name": "Stevia", "price": 6.99, "quantity": 1000, "category": "Sweetener"},
-    {"name": "Artificial sweetener", "price": 4.99, "quantity": 1100, "category": "Sweetener"},
-    {"name": "Molasses", "price": 5.49, "quantity": 1200, "category": "Sweetener"},
-    {"name": "Brown sugar", "price": 3.49, "quantity": 1300, "category": "Sweetener"},
-
-    {"name": "Taco seasoning mix", "price": 1.49, "quantity": 800, "category": "Sauce Mix"},
-    {"name": "Chili seasoning mix", "price": 1.79, "quantity": 900, "category": "Sauce Mix"},
-    {"name": "Fajita seasoning mix", "price": 1.99, "quantity": 1000, "category": "Sauce Mix"},
-    {"name": "Curry seasoning mix", "price": 2.29, "quantity": 1100, "category": "Sauce Mix"},
-    {"name": "Gravy mix", "price": 1.29, "quantity": 1200, "category": "Sauce Mix"},
-    {"name": "Ranch dressing mix", "price": 2.49, "quantity": 1300, "category": "Sauce Mix"},
-    {"name": "Sloppy Joe seasoning mix", "price": 1.69, "quantity": 1400, "category": "Sauce Mix"},
-    {"name": "Stir-fry sauce mix", "price": 2.79, "quantity": 1500, "category": "Sauce Mix"}
-]
+    {'name': 'Chicken noodle soup', 'price': 3.99, 'quantity': 500, 'category': 'Canned Good', 'position': 0}, {'name': 'Tomato soup', 'price': 2.49, 'quantity': 700, 'category': 'Canned Good', 'position': 1}, {'name': 'Vegetable soup', 'price': 2.79, 'quantity': 600, 'category': 'Canned Good', 'position': 2}, {'name': 'Tuna', 'price': 1.99, 'quantity': 900, 'category': 'Canned Good', 'position': 3}, {'name': 'Canned salmon', 'price': 4.99, 'quantity': 300, 'category': 'Canned Good', 'position': 4}, {'name': 'Canned sardines', 'price': 3.29, 'quantity': 400, 'category': 'Canned Good', 'position': 5}, {'name': 'Canned vegetables', 'price': 1.89, 'quantity': 800, 'category': 'Canned Good', 'position': 6}, {'name': 'Canned peach', 'price': 2.39, 'quantity': 700, 'category': 'Canned Good', 'position': 7}, {'name': 'Canned pear', 'price': 2.19, 'quantity': 600, 'category': 'Canned Good', 'position': 8}, {'name': 'Canned pineapple', 'price': 2.99, 'quantity': 500, 'category': 'Canned Good', 'position': 9}, {'name': 'Canned corn', 'price': 1.59, 'quantity': 800, 'category': 'Canned Good', 'position': 10}, {'name': 'Canned green bean', 'price': 1.79, 'quantity': 700, 'category': 'Canned Good', 'position': 11}, {'name': 'Spaghetti', 'price': 1.99, 'quantity': 1000, 'category': 'Pasta and Grain', 'position': 12}, {'name': 'Penne', 'price': 1.79, 'quantity': 1100, 'category': 'Pasta and Grain', 'position': 13}, {'name': 'White rice', 'price': 2.49, 'quantity': 900, 'category': 'Pasta and Grain', 'position': 14}, {'name': 'Brown rice', 'price': 2.69, 'quantity': 800, 'category': 'Pasta and Grain', 'position': 15}, {'name': 'Quinoa', 'price': 4.99, 'quantity': 500, 'category': 'Pasta and Grain', 'position': 16}, {'name': 'Oats', 'price': 1.89, 'quantity': 1200, 'category': 'Pasta and Grain', 'position': 17}, {'name': 'Lentil', 'price': 1.29, 'quantity': 1300, 'category': 'Pasta and Grain', 'position': 18}, {'name': 'Split pea', 'price': 1.39, 'quantity': 1400, 'category': 'Pasta and Grain', 'position': 19}, {'name': 'Pasta', 'price': 1.59, 'quantity': 1100, 'category': 'Pasta and Grain', 'position': 20}, {'name': 'Rice', 'price': 1.49, 'quantity': 1200, 'category': 'Pasta and Grain', 'position': 21}, {'name': 'Beans', 'price': 1.29, 'quantity': 1300, 'category': 'Pasta and Grain', 'position': 22}, {'name': 'Barley', 'price': 2.19, 'quantity': 1000, 'category': 'Pasta and Grain', 'position': 23}, {'name': 'Couscous', 'price': 2.29, 'quantity': 900, 'category': 'Pasta and Grain', 'position': 24}, {'name': 'Farro', 'price': 3.49, 'quantity': 600, 'category': 'Pasta and Grain', 'position': 25}, {'name': 'Orzo', 'price': 2.09, 'quantity': 1100, 'category': 'Pasta and Grain', 'position': 26}, {'name': 'Flour', 'price': 3.49, 'quantity': 700, 'category': 'Baking Essential', 'position': 27}, {'name': 'Sugar', 'price': 2.99, 'quantity': 800, 'category': 'Baking Essential', 'position': 28}, {'name': 'Baking powder', 'price': 1.79, 'quantity': 900, 'category': 'Baking Essential', 'position': 29}, {'name': 'Baking soda', 'price': 1.69, 'quantity': 1000, 'category': 'Baking Essential', 'position': 30}, {'name': 'Cornstarch', 'price': 2.29, 'quantity': 800, 'category': 'Baking Essential', 'position': 31}, {'name': 'Cake mix', 'price': 2.99, 'quantity': 700, 'category': 'Baking Essential', 'position': 32}, {'name': 'Cocoa powder', 'price': 3.79, 'quantity': 600, 'category': 'Baking Essential', 'position': 33}, {'name': 'Vanilla extract', 'price': 4.99, 'quantity': 500, 'category': 'Baking Essential', 'position': 34}, {'name': 'Breakfast cereal', 'price': 3.49, 'quantity': 700, 'category': 'Breakfast Item', 'position': 35}, {'name': 'Granola', 'price': 4.29, 'quantity': 600, 'category': 'Breakfast Item', 'position': 36}, {'name': 'Instant noodles', 'price': 1.99, 'quantity': 1000, 'category': 'Breakfast Item', 'position': 37}, {'name': 'Macaroni and cheese', 'price': 2.79, 'quantity': 900, 'category': 'Breakfast Item', 'position': 38}, {'name': 'Instant soup cup', 'price': 2.39, 'quantity': 1100, 'category': 'Breakfast Item', 'position': 39}, {'name': 'Pancake mix', 'price': 3.29, 'quantity': 800, 'category': 'Breakfast Item', 'position': 40}, {'name': 'Muffin mix', 'price': 2.99, 'quantity': 700, 'category': 'Breakfast Item', 'position': 41}, {'name': 'Instant oatmeal', 'price': 2.19, 'quantity': 1200, 'category': 'Breakfast Item', 'position': 42}, {'name': 'Assorted Nut', 'price': 5.49, 'quantity': 500, 'category': 'Snack', 'position': 43}, {'name': 'Trail mix', 'price': 4.99, 'quantity': 600, 'category': 'Snack', 'position': 44}, {'name': 'Cracker', 'price': 2.49, 'quantity': 800, 'category': 'Snack', 'position': 45}, {'name': 'Popcorn', 'price': 3.29, 'quantity': 700, 'category': 'Snack', 'position': 46}, {'name': 'Nut bar', 'price': 1.99, 'quantity': 1000, 'category': 'Snack', 'position': 47}, {'name': 'Granola bar', 'price': 2.29, 'quantity': 900, 'category': 'Snack', 'position': 48}, {'name': 'Pretzel', 'price': 1.79, 'quantity': 1100, 'category': 'Snack', 'position': 49}, {'name': 'Rice cake', 'price': 1.49, 'quantity': 1200, 'category': 'Snack', 'position': 50}, {'name': 'Mustard', 'price': 1.99, 'quantity': 700, 'category': 'Condiment', 'position': 51}, {'name': 'Mayonnaise', 'price': 3.49, 'quantity': 800, 'category': 'Condiment', 'position': 52}, {'name': 'BBQ sauce', 'price': 2.79, 'quantity': 900, 'category': 'Condiment', 'position': 53}, {'name': 'Soy sauce', 'price': 2.29, 'quantity': 1000, 'category': 'Condiment', 'position': 54}, {'name': 'Worcestershire sauce', 'price': 2.99, 'quantity': 800, 'category': 'Condiment', 'position': 55}, {'name': 'Hot sauce', 'price': 1.99, 'quantity': 700, 'category': 'Condiment', 'position': 56}, {'name': 'Teriyaki sauce', 'price': 3.29, 'quantity': 600, 'category': 'Condiment', 'position': 57}, {'name': 'Fish sauce', 'price': 2.49, 'quantity': 500, 'category': 'Condiment', 'position': 58}, {'name': 'Olive oil', 'price': 6.99, 'quantity': 700, 'category': 'Cooking Oil and Sauce', 'position': 59}, {'name': 'Vegetable oil', 'price': 4.49, 'quantity': 800, 'category': 'Cooking Oil and Sauce', 'position': 60}, {'name': 'Pasta sauce', 'price': 3.29, 'quantity': 900, 'category': 'Cooking Oil and Sauce', 'position': 61}, {'name': 'Soybean oil', 'price': 5.49, 'quantity': 1000, 'category': 'Cooking Oil and Sauce', 'position': 62}, {'name': 'Canola oil', 'price': 4.99, 'quantity': 800, 'category': 'Cooking Oil and Sauce', 'position': 63}, {'name': 'Sesame oil', 'price': 7.99, 'quantity': 700, 'category': 'Cooking Oil and Sauce', 'position': 64}, {'name': 'Alfredo sauce', 'price': 3.79, 'quantity': 600, 'category': 'Cooking Oil and Sauce', 'position': 65}, {'name': 'Marinara sauce', 'price': 3.49, 'quantity': 500, 'category': 'Cooking Oil and Sauce', 'position': 66}, {'name': 'Salt', 'price': 1.29, 'quantity': 1000, 'category': 'Spice and Seasoning', 'position': 67}, {'name': 'Pepper', 'price': 2.49, 'quantity': 1100, 'category': 'Spice and Seasoning', 'position': 68}, {'name': 'Oregano', 'price': 1.79, 'quantity': 900, 'category': 'Spice and Seasoning', 'position': 69}, {'name': 'Cumin', 'price': 2.99, 'quantity': 800, 'category': 'Spice and Seasoning', 'position': 70}, {'name': 'Paprika', 'price': 1.99, 'quantity': 1200, 'category': 'Spice and Seasoning', 'position': 71}, {'name': 'Chili powder', 'price': 2.29, 'quantity': 1300, 'category': 'Spice and Seasoning', 'position': 72}, {'name': 'Cinnamon', 'price': 1.59, 'quantity': 1400, 'category': 'Spice and Seasoning', 'position': 73}, {'name': 'Garlic powder', 'price': 2.79, 'quantity': 1500, 'category': 'Spice and Seasoning', 'position': 74}, {'name': 'Coffee', 'price': 6.99, 'quantity': 800, 'category': 'Beverage', 'position': 75}, {'name': 'Tea', 'price': 4.99, 'quantity': 900, 'category': 'Beverage', 'position': 76}, {'name': 'Fruit juice', 'price': 3.49, 'quantity': 1000, 'category': 'Beverage', 'position': 77}, {'name': 'Powdered milk', 'price': 5.99, 'quantity': 1100, 'category': 'Beverage', 'position': 78}, {'name': 'Evaporated milk', 'price': 2.49, 'quantity': 900, 'category': 'Beverage', 'position': 79}, {'name': 'Hot chocolate mix', 'price': 4.29, 'quantity': 800, 'category': 'Beverage', 'position': 80}, {'name': 'Lemonade mix', 'price': 3.79, 'quantity': 700, 'category': 'Beverage', 'position': 81}, {'name': 'Energy drink', 'price': 2.99, 'quantity': 600, 'category': 'Beverage', 'position': 82}, {'name': 'Honey', 'price': 7.99, 'quantity': 700, 'category': 'Sweetener', 'position': 83}, {'name': 'Maple syrup', 'price': 9.99, 'quantity': 600, 'category': 'Sweetener', 'position': 84}, {'name': 'Sugar', 'price': 2.99, 'quantity': 800, 'category': 'Sweetener', 'position': 85}, {'name': 'Agave syrup', 'price': 8.99, 'quantity': 700, 'category': 'Sweetener', 'position': 86}, {'name': 'Stevia', 'price': 6.99, 'quantity': 1000, 'category': 'Sweetener', 'position': 87}, {'name': 'Artificial sweetener', 'price': 4.99, 'quantity': 1100, 'category': 'Sweetener', 'position': 88}, {'name': 'Molasses', 'price': 5.49, 'quantity': 1200, 'category': 'Sweetener', 'position': 89}, {'name': 'Brown sugar', 'price': 3.49, 'quantity': 1300, 'category': 'Sweetener', 'position': 90}, {'name': 'Taco seasoning mix', 'price': 1.49, 'quantity': 800, 'category': 'Sauce Mix', 'position': 91}, {'name': 'Chili seasoning mix', 'price': 1.79, 'quantity': 900, 'category': 'Sauce Mix', 'position': 92}, {'name': 'Fajita seasoning mix', 'price': 1.99, 'quantity': 1000, 'category': 'Sauce Mix', 'position': 93}, {'name': 'Curry seasoning mix', 'price': 2.29, 'quantity': 1100, 'category': 'Sauce Mix', 'position': 94}, {'name': 'Gravy mix', 'price': 1.29, 'quantity': 1200, 'category': 'Sauce Mix', 'position': 95}, {'name': 'Ranch dressing mix', 'price': 2.49, 'quantity': 1300, 'category': 'Sauce Mix', 'position': 96}, {'name': 'Sloppy Joe seasoning mix', 'price': 1.69, 'quantity': 1400, 'category': 'Sauce Mix', 'position': 97}, {'name': 'Stir-fry sauce mix', 'price': 2.79, 'quantity': 1500, 'category': 'Sauce Mix', 'position': 98},{'name': 'Salt', 'price': 1.29, 'quantity': 2000, 'category': 'Spice and Seasoning', 'position': 99}, {'name': 'Pepper', 'price': 2.49, 'quantity': 2000, 'category': 'Spice and Seasoning', 'position': 100}, {'name': 'Oregano', 'price': 1.79, 'quantity': 350, 'category': 'Spice and Seasoning', 'position': 101}, {'name': 'Cumin', 'price': 2.99, 'quantity': 350, 'category': 'Spice and Seasoning', 'position': 102}, {'name': 'Paprika', 'price': 1.99, 'quantity': 100, 'category': 'Spice and Seasoning', 'position': 103}, {'name': 'Chili powder', 'price': 2.29, 'quantity': 1050, 'category': 'Spice and Seasoning', 'position': 104}, {'name': 'Cinnamon', 'price': 1.59, 'quantity': 110, 'category': 'Spice and Seasoning', 'position': 105}, {'name': 'Garlic powder', 'price': 2.79, 'quantity': 120, 'category': 'Spice and Seasoning', 'position': 106}]
 
 cart =[
-    {"name": "Chicken noodle soup", "price": 3.99, "quantity": 0, "category": "Canned Good"},
-    {"name": "Tomato soup", "price": 2.49, "quantity": 0, "category": "Canned Good"},
-    {"name": "Vegetable soup", "price": 2.79, "quantity": 0, "category": "Canned Good"},
-    {"name": "Tuna", "price": 1.99, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned salmon", "price": 4.99, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned sardines", "price": 3.29, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned vegetables", "price": 1.89, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned peach", "price": 2.39, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned pear", "price": 2.19, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned pineapple", "price": 2.99, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned corn", "price": 1.59, "quantity": 0, "category": "Canned Good"},
-    {"name": "Canned green bean", "price": 1.79, "quantity": 0, "category": "Canned Good"},
-
-    {"name": "Spaghetti", "price": 1.99, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Penne", "price": 1.79, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "White rice", "price": 2.49, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Brown rice", "price": 2.69, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Quinoa", "price": 4.99, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Oats", "price": 1.89, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Lentil", "price": 1.29, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Split pea", "price": 1.39, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Pasta", "price": 1.59, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Rice", "price": 1.49, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Beans", "price": 1.29, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Barley", "price": 2.19, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Couscous", "price": 2.29, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Farro", "price": 3.49, "quantity": 0, "category": "Pasta and Grain"},
-    {"name": "Orzo", "price": 2.09, "quantity": 0, "category": "Pasta and Grain"},
-
-    {"name": "Flour", "price": 3.49, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Sugar", "price": 2.99, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Baking powder", "price": 1.79, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Baking soda", "price": 1.69, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Cornstarch", "price": 2.29, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Cake mix", "price": 2.99, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Cocoa powder", "price": 3.79, "quantity": 0, "category": "Baking Essential"},
-    {"name": "Vanilla extract", "price": 4.99, "quantity": 0, "category": "Baking Essential"},
-
-    {"name": "Breakfast cereal", "price": 3.49, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Granola", "price": 4.29, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Instant noodles", "price": 1.99, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Macaroni and cheese", "price": 2.79, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Instant soup cup", "price": 2.39, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Pancake mix", "price": 3.29, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Muffin mix", "price": 2.99, "quantity": 0, "category": "Breakfast Item"},
-    {"name": "Instant oatmeal", "price": 2.19, "quantity": 0, "category": "Breakfast Item"},
-
-    {"name": "Assorted Nut", "price": 5.49, "quantity": 0, "category": "Snack"},
-    {"name": "Trail mix", "price": 4.99, "quantity": 0, "category": "Snack"},
-    {"name": "Cracker", "price": 2.49, "quantity": 0, "category": "Snack"},
-    {"name": "Popcorn", "price": 3.29, "quantity": 0, "category": "Snack"},
-    {"name": "Nut bar", "price": 1.99, "quantity": 0, "category": "Snack"},
-    {"name": "Granola bar", "price": 2.29, "quantity": 0, "category": "Snack"},
-    {"name": "Pretzel", "price": 1.79, "quantity": 0, "category": "Snack"},
-    {"name": "Rice cake", "price": 1.49, "quantity": 0, "category": "Snack"},
-
-    {"name": "Mustard", "price": 1.99, "quantity": 0, "category": "Condiment"},
-    {"name": "Mayonnaise", "price": 3.49, "quantity": 0, "category": "Condiment"},
-    {"name": "BBQ sauce", "price": 2.79, "quantity": 0, "category": "Condiment"},
-    {"name": "Soy sauce", "price": 2.29, "quantity": 0, "category": "Condiment"},
-    {"name": "Worcestershire sauce", "price": 2.99, "quantity": 0, "category": "Condiment"},
-    {"name": "Hot sauce", "price": 1.99, "quantity": 0, "category": "Condiment"},
-    {"name": "Teriyaki sauce", "price": 3.29, "quantity": 0, "category": "Condiment"},
-    {"name": "Fish sauce", "price": 2.49, "quantity": 0, "category": "Condiment"},
-
-    {"name": "Olive oil", "price": 6.99, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Vegetable oil", "price": 4.49, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Pasta sauce", "price": 3.29, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Soybean oil", "price": 5.49, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Canola oil", "price": 4.99, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Sesame oil", "price": 7.99, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Alfredo sauce", "price": 3.79, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Marinara sauce", "price": 3.49, "quantity": 0, "category": "Cooking Oil and Sauce"},
-
-    {"name": "Salt", "price": 1.29, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Pepper", "price": 2.49, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Oregano", "price": 1.79, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Cumin", "price": 2.99, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Paprika", "price": 1.99, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Chili powder", "price": 2.29, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Cinnamon", "price": 1.59, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Garlic powder", "price": 2.79, "quantity": 0, "category": "Spice and Seasoning"},
-
-    {"name": "Coffee", "price": 6.99, "quantity": 0, "category": "Beverage"},
-    {"name": "Tea", "price": 4.99, "quantity": 0, "category": "Beverage"},
-    {"name": "Fruit juice", "price": 3.49, "quantity": 0, "category": "Beverage"},
-    {"name": "Powdered milk", "price": 5.99, "quantity": 0, "category": "Beverage"},
-    {"name": "Evaporated milk", "price": 2.49, "quantity": 0, "category": "Beverage"},
-    {"name": "Hot chocolate mix", "price": 4.29, "quantity": 0, "category": "Beverage"},
-    {"name": "Lemonade mix", "price": 3.79, "quantity": 0, "category": "Beverage"},
-    {"name": "Energy drink", "price": 2.99, "quantity": 0, "category": "Beverage"},
-
-    {"name": "Mustard", "price": 1.99, "quantity": 0, "category": "Condiment"},
-    {"name": "Mayonnaise", "price": 3.49, "quantity": 0, "category": "Condiment"},
-    {"name": "BBQ sauce", "price": 2.79, "quantity": 0, "category": "Condiment"},
-    {"name": "Soy sauce", "price": 2.29, "quantity": 0, "category": "Condiment"},
-    {"name": "Worcestershire sauce", "price": 2.99, "quantity": 0, "category": "Condiment"},
-    {"name": "Hot sauce", "price": 1.99, "quantity": 0, "category": "Condiment"},
-    {"name": "Teriyaki sauce", "price": 3.29, "quantity": 0, "category": "Condiment"},
-    {"name": "Fish sauce", "price": 2.49, "quantity": 0, "category": "Condiment"},
-
-    {"name": "Olive oil", "price": 6.99, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Vegetable oil", "price": 4.49, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Pasta sauce", "price": 3.29, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Soybean oil", "price": 5.49, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Canola oil", "price": 4.99, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Sesame oil", "price": 7.99, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Alfredo sauce", "price": 3.79, "quantity": 0, "category": "Cooking Oil and Sauce"},
-    {"name": "Marinara sauce", "price": 3.49, "quantity": 0, "category": "Cooking Oil and Sauce"},
-
-    {"name": "Salt", "price": 1.29, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Pepper", "price": 2.49, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Oregano", "price": 1.79, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Cumin", "price": 2.99, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Paprika", "price": 1.99, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Chili powder", "price": 2.29, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Cinnamon", "price": 1.59, "quantity": 0, "category": "Spice and Seasoning"},
-    {"name": "Garlic powder", "price": 2.79, "quantity": 0, "category": "Spice and Seasoning"}
-]
+    {'name': 'Chicken noodle soup', 'price': 3.99, 'quantity': 0, 'category': 'Canned Good', 'position': 0}, {'name': 'Tomato soup', 'price': 2.49, 'quantity': 0, 'category': 'Canned Good', 'position': 1}, {'name': 'Vegetable soup', 'price': 2.79, 'quantity': 0, 'category': 'Canned Good', 'position': 2}, {'name': 'Tuna', 'price': 1.99, 'quantity': 0, 'category': 'Canned Good', 'position': 3}, {'name': 'Canned salmon', 'price': 4.99, 'quantity': 0, 'category': 'Canned Good', 'position': 4}, {'name': 'Canned sardines', 'price': 3.29, 'quantity': 0, 'category': 'Canned Good', 'position': 5}, {'name': 'Canned vegetables', 'price': 1.89, 'quantity': 0, 'category': 'Canned Good', 'position': 6}, {'name': 'Canned peach', 'price': 2.39, 'quantity': 0, 'category': 'Canned Good', 'position': 7}, {'name': 'Canned pear', 'price': 2.19, 'quantity': 0, 'category': 'Canned Good', 'position': 8}, {'name': 'Canned pineapple', 'price': 2.99, 'quantity': 0, 'category': 'Canned Good', 'position': 9}, {'name': 'Canned corn', 'price': 1.59, 'quantity': 0, 'category': 'Canned Good', 'position': 10}, {'name': 'Canned green bean', 'price': 1.79, 'quantity': 0, 'category': 'Canned Good', 'position': 11}, {'name': 'Spaghetti', 'price': 1.99, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 12}, {'name': 'Penne', 'price': 1.79, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 13}, {'name': 'White rice', 'price': 2.49, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 14}, {'name': 'Brown rice', 'price': 2.69, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 15}, {'name': 'Quinoa', 'price': 4.99, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 16}, {'name': 'Oats', 'price': 1.89, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 17}, {'name': 'Lentil', 'price': 1.29, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 18}, {'name': 'Split pea', 'price': 1.39, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 19}, {'name': 'Pasta', 'price': 1.59, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 20}, {'name': 'Rice', 'price': 1.49, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 21}, {'name': 'Beans', 'price': 1.29, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 22}, {'name': 'Barley', 'price': 2.19, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 23}, {'name': 'Couscous', 'price': 2.29, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 24}, {'name': 'Farro', 'price': 3.49, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 25}, {'name': 'Orzo', 'price': 2.09, 'quantity': 0, 'category': 'Pasta and Grain', 'position': 26}, {'name': 'Flour', 'price': 3.49, 'quantity': 0, 'category': 'Baking Essential', 'position': 27}, {'name': 'Sugar', 'price': 2.99, 'quantity': 0, 'category': 'Baking Essential', 'position': 28}, {'name': 'Baking powder', 'price': 1.79, 'quantity': 0, 'category': 'Baking Essential', 'position': 29}, {'name': 'Baking soda', 'price': 1.69, 'quantity': 0, 'category': 'Baking Essential', 'position': 30}, {'name': 'Cornstarch', 'price': 2.29, 'quantity': 0, 'category': 'Baking Essential', 'position': 31}, {'name': 'Cake mix', 'price': 2.99, 'quantity': 0, 'category': 'Baking Essential', 'position': 32}, {'name': 'Cocoa powder', 'price': 3.79, 'quantity': 0, 'category': 'Baking Essential', 'position': 33}, {'name': 'Vanilla extract', 'price': 4.99, 'quantity': 0, 'category': 'Baking Essential', 'position': 34}, {'name': 'Breakfast cereal', 'price': 3.49, 'quantity': 0, 'category': 'Breakfast Item', 'position': 35}, {'name': 'Granola', 'price': 4.29, 'quantity': 0, 'category': 'Breakfast Item', 'position': 36}, {'name': 'Instant noodles', 'price': 1.99, 'quantity': 0, 'category': 'Breakfast Item', 'position': 37}, {'name': 'Macaroni and cheese', 'price': 2.79, 'quantity': 0, 'category': 'Breakfast Item', 'position': 38}, {'name': 'Instant soup cup', 'price': 2.39, 'quantity': 0, 'category': 'Breakfast Item', 'position': 39}, {'name': 'Pancake mix', 'price': 3.29, 'quantity': 0, 'category': 'Breakfast Item', 'position': 40}, {'name': 'Muffin mix', 'price': 2.99, 'quantity': 0, 'category': 'Breakfast Item', 'position': 41}, {'name': 'Instant oatmeal', 'price': 2.19, 'quantity': 0, 'category': 'Breakfast Item', 'position': 42}, {'name': 'Assorted Nut', 'price': 5.49, 'quantity': 0, 'category': 'Snack', 'position': 43}, {'name': 'Trail mix', 'price': 4.99, 'quantity': 0, 'category': 'Snack', 'position': 44}, {'name': 'Cracker', 'price': 2.49, 'quantity': 0, 'category': 'Snack', 'position': 45}, {'name': 'Popcorn', 'price': 3.29, 'quantity': 0, 'category': 'Snack', 'position': 46}, {'name': 'Nut bar', 'price': 1.99, 'quantity': 0, 'category': 'Snack', 'position': 47}, {'name': 'Granola bar', 'price': 2.29, 'quantity': 0, 'category': 'Snack', 'position': 48}, {'name': 'Pretzel', 'price': 1.79, 'quantity': 0, 'category': 'Snack', 'position': 49}, {'name': 'Rice cake', 'price': 1.49, 'quantity': 0, 'category': 'Snack', 'position': 50}, {'name': 'Mustard', 'price': 1.99, 'quantity': 0, 'category': 'Condiment', 'position': 51}, {'name': 'Mayonnaise', 'price': 3.49, 'quantity': 0, 'category': 'Condiment', 'position': 52}, {'name': 'BBQ sauce', 'price': 2.79, 'quantity': 0, 'category': 'Condiment', 'position': 53}, {'name': 'Soy sauce', 'price': 2.29, 'quantity': 0, 'category': 'Condiment', 'position': 54}, {'name': 'Worcestershire sauce', 'price': 2.99, 'quantity': 0, 'category': 'Condiment', 'position': 55}, {'name': 'Hot sauce', 'price': 1.99, 'quantity': 0, 'category': 'Condiment', 'position': 56}, {'name': 'Teriyaki sauce', 'price': 3.29, 'quantity': 0, 'category': 'Condiment', 'position': 57}, {'name': 'Fish sauce', 'price': 2.49, 'quantity': 0, 'category': 'Condiment', 'position': 58}, {'name': 'Olive oil', 'price': 6.99, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 59}, {'name': 'Vegetable oil', 'price': 4.49, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 60}, {'name': 'Pasta sauce', 'price': 3.29, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 61}, {'name': 'Soybean oil', 'price': 5.49, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 62}, {'name': 'Canola oil', 'price': 4.99, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 63}, {'name': 'Sesame oil', 'price': 7.99, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 64}, {'name': 'Alfredo sauce', 'price': 3.79, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 65}, {'name': 'Marinara sauce', 'price': 3.49, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 66}, {'name': 'Salt', 'price': 1.29, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 67}, {'name': 'Pepper', 'price': 2.49, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 68}, {'name': 'Oregano', 'price': 1.79, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 69}, {'name': 'Cumin', 'price': 2.99, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 70}, {'name': 'Paprika', 'price': 1.99, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 71}, {'name': 'Chili powder', 'price': 2.29, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 72}, {'name': 'Cinnamon', 'price': 1.59, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 73}, {'name': 'Garlic powder', 'price': 2.79, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 74}, {'name': 'Coffee', 'price': 6.99, 'quantity': 0, 'category': 'Beverage', 'position': 75}, {'name': 'Tea', 'price': 4.99, 'quantity': 0, 'category': 'Beverage', 'position': 76}, {'name': 'Fruit juice', 'price': 3.49, 'quantity': 0, 'category': 'Beverage', 'position': 77}, {'name': 'Powdered milk', 'price': 5.99, 'quantity': 0, 'category': 'Beverage', 'position': 78}, {'name': 'Evaporated milk', 'price': 2.49, 'quantity': 0, 'category': 'Beverage', 'position': 79}, {'name': 'Hot chocolate mix', 'price': 4.29, 'quantity': 0, 'category': 'Beverage', 'position': 80}, {'name': 'Lemonade mix', 'price': 3.79, 'quantity': 0, 'category': 'Beverage', 'position': 81}, {'name': 'Energy drink', 'price': 2.99, 'quantity': 0, 'category': 'Beverage', 'position': 82}, {'name': 'Mustard', 'price': 1.99, 'quantity': 0, 'category': 'Condiment', 'position': 83}, {'name': 'Mayonnaise', 'price': 3.49, 'quantity': 0, 'category': 'Condiment', 'position': 84}, {'name': 'BBQ sauce', 'price': 2.79, 'quantity': 0, 'category': 'Condiment', 'position': 85}, {'name': 'Soy sauce', 'price': 2.29, 'quantity': 0, 'category': 'Condiment', 'position': 86}, {'name': 'Worcestershire sauce', 'price': 2.99, 'quantity': 0, 'category': 'Condiment', 'position': 87}, {'name': 'Hot sauce', 'price': 1.99, 'quantity': 0, 'category': 'Condiment', 'position': 88}, {'name': 'Teriyaki sauce', 'price': 3.29, 'quantity': 0, 'category': 'Condiment', 'position': 89}, {'name': 'Fish sauce', 'price': 2.49, 'quantity': 0, 'category': 'Condiment', 'position': 90}, {'name': 'Olive oil', 'price': 6.99, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 91}, {'name': 'Vegetable oil', 'price': 4.49, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 92}, {'name': 'Pasta sauce', 'price': 3.29, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 93}, {'name': 'Soybean oil', 'price': 5.49, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 94}, {'name': 'Canola oil', 'price': 4.99, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 95}, {'name': 'Sesame oil', 'price': 7.99, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 96}, {'name': 'Alfredo sauce', 'price': 3.79, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 97}, {'name': 'Marinara sauce', 'price': 3.49, 'quantity': 0, 'category': 'Cooking Oil and Sauce', 'position': 98}, {'name': 'Salt', 'price': 1.29, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 99}, {'name': 'Pepper', 'price': 2.49, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 100}, {'name': 'Oregano', 'price': 1.79, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 101}, {'name': 'Cumin', 'price': 2.99, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 102}, {'name': 'Paprika', 'price': 1.99, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 103}, {'name': 'Chili powder', 'price': 2.29, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 104}, {'name': 'Cinnamon', 'price': 1.59, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 105}, {'name': 'Garlic powder', 'price': 2.79, 'quantity': 0, 'category': 'Spice and Seasoning', 'position': 106}]
 
 categoryList = ('Canned Good','Pasta and Grain','Baking Essential','Breakfast Item','Snack','Condiment','Cooking Oil and Sauce','Spice and Seasoning')
-# loop. Breaks on exit().
+# loop. Stops on exit().
 while True:
     menuMain()
