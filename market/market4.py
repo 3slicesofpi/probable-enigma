@@ -80,7 +80,6 @@ def menuListFormatter(listRaw,listName):
         
 
         # now the client can touch the data
-        print(pageList)
         for items in pageList:
             print(str(items['position'])+':',items['quantity'],items['name']+'(s) at',items['price'],'each')
         clientInput = input('Press a command to continue or press "h" for help. >>>:')
