@@ -5,7 +5,10 @@ def integratedFactoryAndValidator():
     localValidation = 0
     while localValidation == 0:
         try:
-            testExpression = '['+textFactory(textFactoryMode)+'-'+textFactory(textFactoryMode)+']'
+            negatoryFlag = ''
+            if randint(1,2) == 1:
+                negatoryFlag = '^'
+            testExpression = '['+negatoryFlag+textFactory(textFactoryMode)+'-'+textFactory(textFactoryMode)+']'
             re.findall(testExpression,'a')
         except re.error:
             localValidation = -1
@@ -22,6 +25,8 @@ def regexSectionConstructor(puzzleLength):
                 # [abc]
                 textFactoryMode = randint(1,5)
                 puzzle.append('[')
+                if randint(1,2) == 1:
+                    puzzle.append('^')
                 for jteration in range(0,randint(1,5)):
                     puzzle.append(textFactory(textFactoryMode))
                 puzzle.append(']')
@@ -31,6 +36,8 @@ def regexSectionConstructor(puzzleLength):
             case 3:
                 # [A-c]
                 puzzle.append('[')
+                if randint(1,2) == 1:
+                    puzzle.append('^')
                 puzzle.append(textFactory(2))
                 puzzle.append('-')
                 puzzle.append(textFactory(1))
@@ -104,4 +111,75 @@ def listJoinery(rawList):
         joinedString = joinedString+str(element)
     return joinedString
 
-print(listJoinery(regexSectionConstructor(1)))
+
+# finalPuzzle = listJoinery(regexSectionConstructor(3))
+# print('/'+finalPuzzle+'/')
+# answer = input('answer>>>:')
+# if re.match(finalPuzzle,answer) != None:
+#     print('Correct!')
+# else:
+#     print('wrong. answer.')
+def gameEngine(menuState):
+    match menuState:
+        case 'introMenu':
+            print('''
+/regular game/ is a game about solving regex puzzles. Are you up for the challenge?
+/n
+/n
+/i Press any key except 'e' to continue.
+                  ''')
+            if input('>>>:') == 'e':
+                return 'exit' 
+            else:
+                return 'startMenu'
+        case 'exit':
+            print('''
+/m exit
+/n
+/n
+/t Goodbye!
+                  ''')
+            exit()
+            print('/error exit() failed to end program. Try Again.')
+            return
+        case 'startMenu':
+            print('''
+/m start
+/n
+/c -game
+''')
+            gameLevelLength = int(input('/i select number of levels >>>:'))
+            print('/c &lvlen:',str(gameLevelLength))
+            gameExpressionLength = int(input('/i select length of expression >>>:'))
+            print('/c &exlen:',str(gameExpressionLength))
+            print('/n')
+            print('/t starting game...')
+            score = 0
+            for level in range(1,gameLevelLength):
+                print('/n')
+                print('/t',level)
+                theExpression = listJoinery(regexSectionConstructor(gameExpressionLength))
+                print('/t Solve: /'+theExpression+'/')
+                answer = input('/i Your Answer >>>:' )
+                if re.match(theExpression,answer) != None:
+                    print('Correct!')
+                    score += 1
+                else:
+                    print('wrong. answer.')
+            print('/t final score =',str(score)+'/'+str(gameLevelLength))
+            if score == gameLevelLength:
+                print('/t Decoder Dominus! Victory is yours this day.')
+            elif score == 0:
+                print('regex reject. Tray again next time.')
+            else:
+                print('not bad. But you can do better.')
+            return 'startMenu'
+
+            
+
+
+menuState = 'introMenu'
+while True:
+    menuState = gameEngine(menuState)
+
+

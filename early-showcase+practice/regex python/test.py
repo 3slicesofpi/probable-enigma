@@ -1,3 +1,5 @@
 import re
 
-print(re.match('[50871]','j'))
+print(re.findall('[50871]','j'))
+o = 'a'
+print('bdeocbdeicde2',end=o)
