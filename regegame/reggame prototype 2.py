@@ -129,37 +129,48 @@ def listJoinery(rawList):
     return joinedString
 
 def menuIntro():
-    print('blah')
+    print('press any key except "e"(which exits the game) "h"(which gets help)')
     try:
         match input('>>>:').lower()[0]:
             case 'e':
                 return 'menuExit'
+            case 'h':
+                return 'menuHelp'
     except:
         print('fail')
         return 'menuExit'
     return 'menuMain'
 
 def menuMain():
-    print('blah')
+    print('select difficulty(how forgiving the game will be)')
     global difficulty
+    difficulty = 1
     try:
         match input('>>>:').lower()[0]:
             case 'e':
                 return 'menuExit'
+            case 'h':
+                return 'menuHelp'
             case '1':
                 difficulty = 1
                 return 'menuStart'
             case '2':
                 difficulty = 2
                 return 'menuStart'
+            case '3':
+                difficulty = 3
+                return 'menuStart'
     except:
         print('fail')
         return 'menuExit'
+    return 'menuMain'
 
 def menuStart():
     try:
-        numofRepeats = int(input('repeats >>>:'))
-        numofSections = int(input('sections >>>:'))
+        numofRepeats = int(input('repeats (how many times you want to play.)>>>:'))
+        numofSections = int(input('sections (how long your regex will be.)>>>:'))
+        if (numofRepeats < 0) or (numofSections < 0):
+            numofRepeats = symbolTuple[100] # cause an error
     except:
         print('fail')
         numofRepeats = 0
@@ -177,7 +188,7 @@ def menuStart():
                 theExpression[1] += 3
             case 3:
                 theExpression[1] += 1
-        print('/t Solve: /'+theExpression[0]+'/ in',theExpression[1],'charcters')
+        print('Solve: /'+theExpression[0]+'/ in',theExpression[1],'charcters')
         answer = input('/i Your Answer >>>:' )
         score += 1
         if re.match(theExpression[0],answer) != None:
@@ -188,14 +199,35 @@ def menuStart():
         if len(answer) > theExpression[1]:
             print('Your answer was too long. It needs to be',theExpression[1],'long')
             score -= 1
+    print(score,'/',numofRepeats)
     return 'menuMain'
 
+def menuHelp():
+    print('''
+welcome to reggame prototype.
 
+    MENUS
+You can access the help menu from anywhere in the program except when the game is running.
+Just press 'h'.
+Same with exiting the program
+Just press 'e'.
+          
+    GAME
+this is a regex game.
+you will be given a regular expression.
+Create a string of characters to satisfy the experssion to win.  
+Successful matches give one point.
+Exceeding the prescribed number of characters results in the deduction of points    
+
+SCROLL UP TO READ''')
+    
+    return 'menuMain'
 
 def mainLoop(menuState):
     match menuState:
         case 'menuExit':
             print('exit')
+            print('have a nice day')
             exit()
         case 'menuIntro':
             return menuIntro()
@@ -203,6 +235,8 @@ def mainLoop(menuState):
             return menuMain()
         case 'menuStart':
             return menuStart()
+        case 'menuHelp':
+            return menuHelp()
 
 menuState = 'menuIntro'    
 while True:
