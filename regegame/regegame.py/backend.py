@@ -196,7 +196,7 @@ def gameSession(numRepeats,numSections,maxAnsLen,maxTime):
             print('Your answer does not satisfy the regex.')
             print('a point has been deducted.')
             score -= 1
-        if (len(answer) > theExpression['sectionLength']) and maxAnsLen[1]:
+        if (len(answer) > theExpression['totalLength']) and maxAnsLen[1]:
             print('Your answer was too long at',len(answer),'characters long.')
             print('It should be',theExpression['sectionLength'],'characters long.')
             print('a point has been deducted.')
@@ -214,5 +214,128 @@ def gameSession(numRepeats,numSections,maxAnsLen,maxTime):
     return {'score':score,'time':sessionTime,'chars':sessionCharsUsed}
 
 
-# numrepeats, numsections, (maxanslen, demerit), (maxtime, demerit)
-gameSession(1,5,(2,True),(3,True))
+def gamePuzzle(numSections,givenChars,givenTime):
+    timeAnchorLocal = time()
+    theExpression = regexSectionConstructor(numSections)
+    theExpression['puzzle'] = listJoinery(theExpression['puzzle'])
+    print('In',givenTime,'seconds,') #move to frontend later
+    print('Solve the following in',givenChars,'characters')
+    print('/',theExpression['puzzle'],'/')
+    ansWer = str(input('>>>:'))
+    ansLen = len(ansWer)
+
+    resultDict = {'correct':False,'withinTime':False,'withinChars':False}
+    usedTime = (time()-timeAnchorLocal)
+    if re.match(theExpression['puzzle'],ansWer) != None:
+        resultDict['correct'] = True
+    if ansLen <= givenChars:
+        resultDict['withinChars'] = True
+    if usedTime > givenTime:
+        resultDict['withinTime'] = True
+
+    return {'usedTime':usedTime,'usedChars':ansLen,'resultDict':resultDict,'expression':theExpression['puzzle']}
+
+def gameSetup(argType,argDict):
+    match argType:
+        case 1: # difficulty scale, not endless
+            match argDict['difficulty']:
+                case 0:
+                    argDict = {'givenTime':0,'givenChars':0,'penaltyTime':True,'penaltyChars':True,'numSections':1,'randSections':0,'numPuzzles':5}
+                case 1:
+                    argDict = {'givenTime':1,'givenChars':1,'penaltyTime':True,'penaltyChars':True,'numSections':2,'randSections':1,'numPuzzles':5}
+                case 2:
+                    argDict = {'givenTime':2,'givenChars':2,'penaltyTime':True,'penaltyChars':True,'numSections':3,'randSections':1,'numPuzzles':10}
+                case 3:
+                    argDict = {'givenTime':3,'givenChars':3,'penaltyTime':True,'penaltyChars':True,'numSections':5,'randSections':2,'numPuzzles':13}
+
+        case 2: # difficulty scale endless
+            match argDict['difficulty']:
+                case 0:
+                    argDict = {'givenTime':0,'givenChars':0,'penaltyTime':True,'penaltyChars':True,'numSections':2,'randSections':1}
+                case 1:
+                    argDict = {'givenTime':1,'givenChars':1,'penaltyTime':True,'penaltyChars':True,'numSections':2,'randSections':1}
+                case 2:
+                    argDict = {'givenTime':1,'givenChars':2,'penaltyTime':True,'penaltyChars':True,'numSections':3,'randSections':1}
+                case 3:
+                    argDict = {'givenTime':2,'givenChars':3,'penaltyTime':True,'penaltyChars':True,'numSections':4,'randSections':2}
+            argDict['numPuzzles'] = None
+
+
+        case 3: # allargsgiven not endless  
+            if argDict['numPuzzles'] == (0 or None):
+                argDict['numPuzzles'] = randint(5,25)
+        case 4: 
+            argDict['numPuzzles'] = None
+    return argDict
+
+def gamePlay(argDict):
+    numSections = argDict['numSections']
+    match argDict['givenTime']:
+        case 0:
+            givenTime = 45+5*numSections+randint(-10,0)
+        case 1:
+            givenTime = 25+3*numSections+randint(-5,0)
+        case 2:
+            givenTime = 5+2*numSections+randint(-1,0)
+        case 3:
+            givenTime = 4+1*numSections+randint(0,1)
+        case _:
+            givenTime = argDict['givenTime']
+    
+    if argDict['numPuzzles'] == None:
+        argDict['numPuzzles'] = 255
+        score = 10
+    else:
+        score = 0
+    totalTime = 0
+    totalChars = 0
+    for iteration in range(1,(argDict['numPuzzles']+1)):
+        if score >= 0:
+            timeAnchorLocal = time()
+            print('puzzle no.'+str(iteration+1))
+            theExpression = regexSectionConstructor(argDict['numSections']+randint(-argDict['randSections'],argDict['randSections']))
+            theExpression['puzzle'] = listJoinery(theExpression['puzzle'])
+            print('In',givenTime,'seconds,')
+            print('Solve: /'+theExpression['puzzle']+'/')
+            match argDict['givenChars']:
+                case 0:
+                    givenChars = 3+2*theExpression['totalLength']
+                case 1:
+                    givenChars = 2*theExpression['totalLength']
+                case 2:
+                    givenChars = 1+theExpression['totalLength']
+                case 3:
+                    givenChars = 1-(theExpression['totalLength']/5)
+                case _:
+                    givenChars = argDict['givenChars']
+            print('in',givenChars,'characters')
+            ansWer = input('/i Your Answer >>>:' )
+            ansLen = len(ansWer)
+            score += 1
+            usedTime = time()-timeAnchorLocal
+            totalTime += usedTime
+            totalChars += ansLen
+            if re.match(theExpression['puzzle'],ansWer) != None:
+                print('correct.')
+            else:
+                print('wrong')
+                score -= 1
+            if usedTime < givenTime:
+                print('time good.')
+            else:
+                print('over time.')
+                if argDict['penaltyTime']:
+                    score -= 1
+                    print('penalty applied')
+            if ansLen < givenChars:
+                print('chars good.')
+            else:
+                print('over char.')
+                if argDict['penaltyChars']:
+                    score -= 1
+                    print('penalty applied')
+        else:
+            print('ran out of score :(')
+
+    return {'score':score,'totalTime':totalTime,'totalChars':totalChars}
+        
