@@ -267,75 +267,75 @@ def gameSetup(argType,argDict):
         case 4: 
             argDict['numPuzzles'] = None
     return argDict
+       
+def gamePlay(givenTime,givenChars,numSections):
+    timeAnchorLocal = time()
+    theExpression = regexSectionConstructor(numSections)
+    theExpression['puzzle'] = listJoinery(theExpression['puzzle'])
+    givenChars += theExpression['totalLength']
 
-def gamePlay(argDict):
-    numSections = argDict['numSections']
-    match argDict['givenTime']:
-        case 0:
-            givenTime = 45+5*numSections+randint(-10,0)
-        case 1:
-            givenTime = 25+3*numSections+randint(-5,0)
-        case 2:
-            givenTime = 5+2*numSections+randint(-1,0)
-        case 3:
-            givenTime = 4+1*numSections+randint(0,1)
-        case _:
-            givenTime = argDict['givenTime']
+    print('Solve /',theExpression['puzzle']+'/ in',givenChars,'characters and',givenTime,'seconds')
+
+    ansWer = str(input('>>>:'))
+    ansLen = len(ansWer)
+    usedTime = (time()-timeAnchorLocal)
+
+    puzzleResult = {
+        'correct':False,
+        'inChars':False,
+        'inTime':False,
+        'usedChars':ansLen,
+        'usedTime':usedTime,
+        'expression':theExpression['puzzle']
+    }
+    if re.match(theExpression['puzzle'],ansWer) != None:
+        puzzleResult['correct'] = True
+    if ansLen <= givenChars:
+        puzzleResult['inChars'] = True
+    if usedTime <= givenTime:
+        puzzleResult['inTime'] = True
+    return puzzleResult
     
-    if argDict['numPuzzles'] == None:
-        argDict['numPuzzles'] = 255
-        score = 10
-    else:
-        score = 0
-    totalTime = 0
-    totalChars = 0
-    for iteration in range(1,(argDict['numPuzzles']+1)):
-        if score >= 0:
-            timeAnchorLocal = time()
-            print('puzzle no.'+str(iteration+1))
-            theExpression = regexSectionConstructor(argDict['numSections']+randint(-argDict['randSections'],argDict['randSections']))
-            theExpression['puzzle'] = listJoinery(theExpression['puzzle'])
-            print('In',givenTime,'seconds,')
-            print('Solve: /'+theExpression['puzzle']+'/')
-            match argDict['givenChars']:
-                case 0:
-                    givenChars = 3+2*theExpression['totalLength']
-                case 1:
-                    givenChars = 2*theExpression['totalLength']
-                case 2:
-                    givenChars = 1+theExpression['totalLength']
-                case 3:
-                    givenChars = 1-(theExpression['totalLength']/5)
-                case _:
-                    givenChars = argDict['givenChars']
-            print('in',givenChars,'characters')
-            ansWer = input('/i Your Answer >>>:' )
-            ansLen = len(ansWer)
-            score += 1
-            usedTime = time()-timeAnchorLocal
-            totalTime += usedTime
-            totalChars += ansLen
-            if re.match(theExpression['puzzle'],ansWer) != None:
-                print('correct.')
-            else:
-                print('wrong')
-                score -= 1
-            if usedTime < givenTime:
-                print('time good.')
-            else:
-                print('over time.')
-                if argDict['penaltyTime']:
-                    score -= 1
-                    print('penalty applied')
-            if ansLen < givenChars:
-                print('chars good.')
-            else:
-                print('over char.')
-                if argDict['penaltyChars']:
-                    score -= 1
-                    print('penalty applied')
-        else:
-            print('ran out of score :(')
 
-    return {'score':score,'totalTime':totalTime,'totalChars':totalChars}
+# EXAMPLE ARGDICT
+# givenchars add to minimum.
+argDict = {
+    'penCorrect':True,'givenScore':0,
+    'givenTime':0,'randTime':0,'penTime':False,
+    'givenChars':1,'randChars':0,'penChars':False,
+    'numSections':3,'randSections':0,
+    'numPuzzles':5
+    }
+def gameSession(argDict):
+    timeAnchorSession = time()
+    score = argDict['givenScore']
+    stats = [] # list of dicts
+    #TODO make randModeTime, etc
+    #TODO: test
+    randTimeFloor = -argDict['randTime']
+    randTimeCeil = argDict['randTime']
+    randCharsFloor = -argDict['randChars']
+    randCharsCeil = argDict['randChars']
+    randSectionsFloor = -argDict['randSections']
+    randSectionsCeil = argDict['randSections']
+
+    for iteration in range(0,argDict['numPuzzles']):
+        print('Puzzle',iteration)
+        puzzleResult = gamePlay(
+                argDict['givenTime']+randint(randTimeFloor,randTimeCeil),
+                argDict['givenChars']+randint(randCharsFloor,randCharsCeil),
+                argDict['numSections']+randint(randSectionsFloor,randSectionsCeil)
+                )
         
+        score += 1
+        if (not puzzleResult['correct']) and argDict['penCorrect']:
+            score -= 1
+        if (not puzzleResult['inChars']) and argDict['penChars']:
+            score -= 1
+        if (not puzzleResult['inTime']) and argDict['penTime']:
+            score -= 1
+        
+        stats.append(puzzleResult)
+
+gameSession(argDict)
+    
