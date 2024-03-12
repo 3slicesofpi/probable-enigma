@@ -301,41 +301,99 @@ def gamePlay(givenTime,givenChars,numSections):
 # givenchars add to minimum.
 argDict = {
     'penCorrect':True,'givenScore':0,
-    'givenTime':0,'randTime':0,'penTime':False,
-    'givenChars':1,'randChars':0,'penChars':False,
-    'numSections':3,'randSections':0,
+    'givenTime':0,'randTime':0,'penTime':False,'randModeTime':0,
+    'givenChars':1,'randChars':0,'penChars':False,'randModeChars':1,
+    'numSections':3,'randSections':0,'randModeSections':2,
     'numPuzzles':5
     }
 def gameSession(argDict):
     timeAnchorSession = time()
     score = argDict['givenScore']
     stats = [] # list of dicts
-    #TODO make randModeTime, etc
     #TODO: test
-    randTimeFloor = -argDict['randTime']
-    randTimeCeil = argDict['randTime']
-    randCharsFloor = -argDict['randChars']
-    randCharsCeil = argDict['randChars']
-    randSectionsFloor = -argDict['randSections']
-    randSectionsCeil = argDict['randSections']
+    #TODO: stat viewer
+    #time, chars, sections
+    randNamesFloor = [0,0,0]
+    randNamesCeil = [0,0,0]
+    randNamesMode = (argDict['randModeTime'],argDict['randModeChars'],argDict['randModeSections'])
+    randNamesQuantity = (argDict['randTime'],argDict['randChars'],argDict['randSections'])
+    for randSelected in range(3):
+        if randNamesQuantity[randSelected]>0:
+            match randNamesMode[randSelected]:
+                case 0: # default
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]
+                case 1:
+                    # randNamesFloor[randSelected] = 0
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]
+                case 2:
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    # randNamesFloor[randSelected] = 0
+                case 3:
+                    randNamesFloor[randSelected] = 1-randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]
+                case 4:
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = 1+randNamesQuantity[randSelected]
+                case 5:
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]-1
 
     for iteration in range(0,argDict['numPuzzles']):
         print('Puzzle',iteration)
         puzzleResult = gamePlay(
-                argDict['givenTime']+randint(randTimeFloor,randTimeCeil),
-                argDict['givenChars']+randint(randCharsFloor,randCharsCeil),
-                argDict['numSections']+randint(randSectionsFloor,randSectionsCeil)
+                argDict['givenTime']+randint(randNamesFloor[0],randNamesCeil[0]),
+                argDict['givenChars']+randint(randNamesFloor[1],randNamesCeil[1]),
+                argDict['numSections']+randint(randNamesFloor[2],randNamesCeil[2])
                 )
         
         score += 1
         if (not puzzleResult['correct']) and argDict['penCorrect']:
             score -= 1
+            print(False)
         if (not puzzleResult['inChars']) and argDict['penChars']:
             score -= 1
+            print(False)
         if (not puzzleResult['inTime']) and argDict['penTime']:
             score -= 1
+            print(False)
         
         stats.append(puzzleResult)
+    return {'stats':stats,'score':score}
 
-gameSession(argDict)
+def statsViewer(stats,mode):
+    index = 0
+    match mode:
+        case None:
+            for iteration in stats:
+                index += 1
+                print(iteration)
+        case 0:
+            for iteration in stats:
+                index += 1
+                print(str(index)+'.',iteration['expression'],iteration['correct'],iteration['usedChars'],str(int(iteration['usedTime'])))
+        case 1:
+            for iteration in stats:
+                index += 1
+                print(str(index)+'.',iteration['correct'])
+        case 2:
+            for iteration in stats:
+                index += 1
+                print(str(index)+'.',iteration['expression'])
+        case 3:
+            for iteration in stats:
+                index += 1
+                print(str(index)+'.',iteration['inChars'],iteration['usedChars'])
+        case 4:
+            for iteration in stats:
+                index += 1
+                print(str(index)+'.',iteration['inTime'],str(int(iteration['usedTime'])))
+        case _:
+            for iteration in stats:
+                index += 1
+                print(str(index)+'.',iteration[str(mode)])
+
+
+
+
     

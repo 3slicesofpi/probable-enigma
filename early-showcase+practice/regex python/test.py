@@ -1,33 +1,38 @@
-import re
-from random import randint
-import time
-print(time.time())
+def randome(argDict):
+    #time, chars, sections
+    randNamesFloor = [0,0,0]
+    randNamesCeil = [0,0,0]
+    randNamesMode = (argDict['randModeTime'],argDict['randModeChars'],argDict['randModeSections'])
+    randNamesQuantity = (argDict['randTime'],argDict['randChars'],argDict['randSections'])
+    for randSelected in range(3):
+        if randNamesQuantity[randSelected]>0:
+            match randNamesMode[randSelected]:
+                case 0: # default
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]
+                case 1:
+                    # randNamesFloor[randSelected] = 0
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]
+                case 2:
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    # randNamesFloor[randSelected] = 0
+                case 3:
+                    randNamesFloor[randSelected] = 1-randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]
+                case 4:
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = 1+randNamesQuantity[randSelected]
+                case 5:
+                    randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
+                    randNamesCeil[randSelected] = randNamesQuantity[randSelected]-1
+
+    print(randNamesCeil,randNamesFloor)
 
 
-textTuple = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z')
-numberTuple = ('0','1','2','3','4','5','6','7','8','9')
-symbolTuple = ('!','#','%',':',';','<','>','=','_','~') 
-def textFactory(mode,blacklist):
-    ignition = True
-    finalSolution = ''
-    while ((finalSolution in blacklist) and finalSolution != ' ') or ignition:
-        ignition = False
-        match mode:
-            case 1: # a-z
-                textPos = randint(0,25)
-                finalSolution = str(textTuple[textPos])
-            case 2: # A-Z
-                textPos = randint(0,25)
-                finalSolution = str(textTuple[textPos].upper())
-            case 3: # 0-9
-                textPos = randint(0,9)
-                finalSolution = str(numberTuple[textPos])
-            case 4: # symbols
-                textPos = randint(0,9)
-                finalSolution = str(symbolTuple[textPos])
-            case 5: # \s
-                textPos = 0
-                finalSolution = ' ' # NO BLACKLIST ON MODE 5
-    return finalSolution
-    
-print(textFactory(5,(' ')))
+randome({
+    'penCorrect':True,'givenScore':0,
+    'givenTime':0,'randTime':1,'penTime':False,'randModeTime':2,
+    'givenChars':1,'randChars':2,'penChars':False,'randModeChars':0,
+    'numSections':3,'randSections':3,'randModeSections':5,
+    'numPuzzles':5
+    })
