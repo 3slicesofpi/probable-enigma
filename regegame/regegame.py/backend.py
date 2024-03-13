@@ -28,7 +28,7 @@ def integratedFactoryAndValidator():
             localValidation += 1
     return testExpression
 
-def regexSectionConstructor(puzzleLength):
+def regexSectionConstructor(puzzleLength): #mk. IB stable
     puzzle = []
     totalLength = 0
     textFactoryMode = None
@@ -40,8 +40,6 @@ def regexSectionConstructor(puzzleLength):
             case True if matchNumRand in range(0,24):
                 #[abc]
                 puzzle.append('[')
-                if randint(1,2) == 1:
-                    puzzle.append('^')
                 textFactoryMode = randint(0,100)
                 if textFactoryMode in range(0,34):
                     textFactoryMode = 1 #a
@@ -54,11 +52,14 @@ def regexSectionConstructor(puzzleLength):
                         textFactoryMode = 4 #%
                     else:
                         textFactoryMode = 5 #/s
+                if randint(1,2) == 1:
+                    puzzle.append('^')
 
                 for iteration in range(0,randint(1,4)):
                     puzzle.append(textFactory(textFactoryMode,blacklist))
                     blacklist.append(puzzle[-1])
                 puzzle.append(']')
+                sectionLength += 1
                 
             case True if matchNumRand in range(25,44):
                 #[a-c]
@@ -155,85 +156,6 @@ def listJoinery(rawList):
         joinedString = joinedString+str(element)
     return joinedString
 
-def gameSession(numRepeats,numSections,maxAnsLen,maxTime):
-    score = 0
-    sessionCharsUsed = 0
-    timeAnchorSession = time()
-    for iteration in range(0,numRepeats):
-        # creating puzzle...
-        timeAnchorLocal = time()
-        print('puzzle no.'+str(iteration+1))
-        theExpression = regexSectionConstructor(numSections)
-        theExpression['puzzle'] = listJoinery(theExpression['puzzle'])
-        match maxAnsLen[0]:
-            case 0:
-                theExpression['sectionLength'] = int(theExpression['sectionLength']*3.5)-3
-            case 1:
-                theExpression['sectionLength'] = int(theExpression['sectionLength']*1.5)-1
-            case 2:
-                theExpression['sectionLength'] = int(theExpression['sectionLength']*1.2)+1
-            case 3:
-                theExpression['sectionLength'] += 1
-        match maxTime[0]:
-            case 0:
-                timeGiven = 60+5*numSections #60s for each puzzle +5s for each section length
-            case 1:
-                timeGiven = 30+3*numSections #30s for each puzzle +3s for each section length
-            case 2:
-                timeGiven = 15+numSections #15s for each puzzle +1s for each section length
-            case 3:
-                timeGiven = 5+numSections #5s for each puzzle +1s for each section length
-        print('In',timeGiven,'seconds,')
-        print('Solve: /'+theExpression['puzzle']+'/ in',theExpression['sectionLength'],'charcters')
-        answer = input('/i Your Answer >>>:' )
-        
-        # validating answer...
-        score += 1
-        sessionCharsUsed += len(answer)
-        if re.match(theExpression['puzzle'],answer) != None:
-            print('Match! Your answer satisfies the regex.')
-        else:
-            print('Your answer does not satisfy the regex.')
-            print('a point has been deducted.')
-            score -= 1
-        if (len(answer) > theExpression['totalLength']) and maxAnsLen[1]:
-            print('Your answer was too long at',len(answer),'characters long.')
-            print('It should be',theExpression['sectionLength'],'characters long.')
-            print('a point has been deducted.')
-            score -= 1
-        if ((time()-timeAnchorLocal) > timeGiven) and maxTime[1]:
-            print('You took too long to answer.')
-            print('a point has been deducted.')
-            score -= 1
-        else:
-            print(int(time()-timeAnchorLocal))
-    # puzzle done
-    sessionTime = time()-timeAnchorSession
-    print(int(sessionTime))
-    print("This session's final score:",str(score)+'/'+str(numRepeats))
-    return {'score':score,'time':sessionTime,'chars':sessionCharsUsed}
-
-
-def gamePuzzle(numSections,givenChars,givenTime):
-    timeAnchorLocal = time()
-    theExpression = regexSectionConstructor(numSections)
-    theExpression['puzzle'] = listJoinery(theExpression['puzzle'])
-    print('In',givenTime,'seconds,') #move to frontend later
-    print('Solve the following in',givenChars,'characters')
-    print('/',theExpression['puzzle'],'/')
-    ansWer = str(input('>>>:'))
-    ansLen = len(ansWer)
-
-    resultDict = {'correct':False,'withinTime':False,'withinChars':False}
-    usedTime = (time()-timeAnchorLocal)
-    if re.match(theExpression['puzzle'],ansWer) != None:
-        resultDict['correct'] = True
-    if ansLen <= givenChars:
-        resultDict['withinChars'] = True
-    if usedTime > givenTime:
-        resultDict['withinTime'] = True
-
-    return {'usedTime':usedTime,'usedChars':ansLen,'resultDict':resultDict,'expression':theExpression['puzzle']}
 
 def gameSetup(argType,argDict):
     match argType:
