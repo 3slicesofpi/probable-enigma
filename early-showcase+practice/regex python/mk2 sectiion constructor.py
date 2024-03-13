@@ -1,12 +1,10 @@
 from random import randint as rnd
+from random import getrandbits
 import re
-def d2():
-    num = rnd(1,2)
-    if num == 1:
-        return False
-    else: return True
+def d2(): #fastest fingers in the west
+    return getrandbits(1)
 
-def bd2(TrueChance):
+def bd2(TrueChance): #bit slower
     num = rnd(0,100)
     if num <= TrueChance:
         return True
@@ -173,52 +171,64 @@ def regexSectionConstructor(numofSections): #mk. II
                     sectionLength += 1
                     theEx.append(textFactory(rnd(1,5),()))
             else:
-                # do as normal
-                textFactoryMode = rnd(0,100)
-                if textFactoryMode in range(0,34):
-                    textFactoryMode = 1 #a
-                elif textFactoryMode in range(35,54):
-                    textFactoryMode = 2 #A
-                elif textFactoryMode in range(55,84):
-                    textFactoryMode = 3 #1
-                else:
-                    textFactoryMode = 4 #/s
+                for char in range(1,rnd(1,3)+1):
+                    sectionLength += 1
+                    match rnd(1,4):
+                        case 1:
+                            theEx.append('.')
+                        case 2:
+                            theEx.append('\.')
+                        case 3:
+                            theEx.append('\*')
+                        case 4:
+                            theEx.append('\s')
+        
+        elif sectionTypeRand in range(sectionTypeChance[5],sectionTypeChance[6]-1):
+            textFactoryMode = rnd(0,100)
+            if textFactoryMode in range(0,34):
+                textFactoryMode = 1 #a
+            elif textFactoryMode in range(35,54):
+                textFactoryMode = 2 #A
+            elif textFactoryMode in range(55,84):
+                textFactoryMode = 3 #1
+            else:
+                textFactoryMode = 4 #/s
+            if d2():
+                #(abc)
+                theEx.append('(')
                 if d2():
-                    #(abc)
-                    theEx.append('(')
-                    if d2():
-                        theEx.append('^')
-                    matchNumRand = rnd(0,100) #watch out
-                    if matchNumRand in range(0,23):
-                        sectionLength = 1
-                    elif matchNumRand in range(35,69):
-                        sectionLength = 2
-                    elif matchNumRand in range(70,84):
-                        sectionLength = 3
-                    elif matchNumRand in range(85,94):
-                        sectionLength = 4
-                    else: 
-                        sectionLength = 5
-                    for iterations in range(0,sectionLength):
-                        theEx.append(textFactory(textFactoryMode,blacklist))
-                        blacklist.append(theEx[-1])
-                    theEx.append(')')
+                    theEx.append('^')
+                matchNumRand = rnd(0,100) #watch out
+                if matchNumRand in range(0,23):
+                    sectionLength = 1
+                elif matchNumRand in range(35,69):
+                    sectionLength = 2
+                elif matchNumRand in range(70,84):
+                    sectionLength = 3
+                elif matchNumRand in range(85,94):
+                    sectionLength = 4
+                else: 
+                    sectionLength = 5
+                for iterations in range(0,sectionLength):
+                    theEx.append(textFactory(textFactoryMode,blacklist))
+                    blacklist.append(theEx[-1])
+                theEx.append(')')
 
-                    #abc no brackets
-                    matchNumRand = theEx(0,100) #watch out
-                    if matchNumRand in range(0,39):
-                        sectionLength = 1
-                    elif matchNumRand in range(40,74):
-                        sectionLength = 2
-                    elif matchNumRand in range(75,89):
-                        sectionLength = 3
-                    else:
-                        sectionLength = 4
-                    for iterations in range(0,sectionLength):
-                        theEx.append(textFactory(textFactoryMode,blacklist))
-                        blacklist.append(theEx[-1])    
+                #abc no brackets
+                matchNumRand = theEx(0,100) #watch out
+                if matchNumRand in range(0,39):
+                    sectionLength = 1
+                elif matchNumRand in range(40,74):
+                    sectionLength = 2
+                elif matchNumRand in range(75,89):
+                    sectionLength = 3
+                else:
+                    sectionLength = 4
+                for iterations in range(0,sectionLength):
+                    theEx.append(textFactory(textFactoryMode,blacklist))
+                    blacklist.append(theEx[-1])    
 
-        elif sectionTypeRand in range(sectionTypeChance[5],sectionTypeChance[6]-1): #(abc)
+        elif sectionTypeRand in range(sectionTypeChance[6],sectionTypeChance[7]-1): #(abc)
             pass
 
     totalLength += sectionLength

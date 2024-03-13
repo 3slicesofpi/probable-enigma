@@ -1,5 +1,8 @@
 import re
 from random import randint as rnd
+from random import getrandbits
 
-for i in range(1,1+1):
-    print(i)
+
+if getrandbits(1):
+    print('ye')
+
