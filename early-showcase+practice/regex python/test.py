@@ -3,6 +3,5 @@ from random import randint as rnd
 from random import getrandbits
 
 
-if getrandbits(1):
-    print('ye')
-
+liste = (0,'(',2,3,4,')',6,7,8,9,10)
+print(liste[2:5])
