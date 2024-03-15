@@ -1,7 +1,7 @@
 from random import randint as rnd
 from random import getrandbits
 import re
-def d2(): #fastest fingers in the west
+def d2(): #fast!
     return getrandbits(1)
 
 def bd2(TrueChance): #bit slower
@@ -14,11 +14,10 @@ def bd2(TrueChance): #bit slower
 textTuple = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z')
 numberTuple = ('0','1','2','3','4','5','6','7','8','9')
 symbolTuple = ('!','#','%',':',';','<','>','=','_','~') 
+
 def textFactory(mode,blacklist):
-    ignition = True
     finalSolution = ''
-    while (finalSolution in blacklist) or ignition:
-        ignition = False
+    while True:
         match mode:
             case 1: # a-z
                 textPos = rnd(0,25)
@@ -35,7 +34,8 @@ def textFactory(mode,blacklist):
             case 5: # \s
                 textPos = 0
                 finalSolution = ' ' # NO BLACKLIST ON MODE 5
-    return finalSolution
+        if not (finalSolution in blacklist):
+            return finalSolution
 
 def listJoinery(rawList):
     joinedString = ''
@@ -43,8 +43,7 @@ def listJoinery(rawList):
         joinedString = joinedString+str(element)
     return joinedString
 
-def integratedFactoryAndValidator():
-    textFactoryMode = rnd(1,2)
+def integratedFactoryAndValidator(textFactoryMode):
     localValidation = 0
     while localValidation == 0:
         try:
@@ -53,7 +52,7 @@ def integratedFactoryAndValidator():
                 negatoryFlag = '^'
             char2 = rnd(1,25)
             char1 = rnd(0,char2-1)
-            if rnd(1,2) == 1:
+            if textFactoryMode:
                 testExpression = '['+negatoryFlag+textTuple[char1].upper()+'-'+textTuple[char2].upper()+']'
             else:
                 testExpression = '['+negatoryFlag+textTuple[char1]+'-'+textTuple[char2]+']'
@@ -66,10 +65,21 @@ def integratedFactoryAndValidator():
             localValidation += 1
     return testExpression
 
+def ranlistFactory(raw):
+    newList = [0]
+    for here in raw:
+        newList.append(here)
+        newList[-1]+=newList[-2]
+    return newList
+
 def regexRndChooser(numofSections):
-    sectionTypeChance = (0,25,35,45,55,65,75,95,101) # plh
-    textFactoryChance = (0,35,55,80,90,101)
-    sectionLengthChance = (0,30,55,80,95,101)
+    # use randListFactory
+    sectionTypeChance = ranlistFactory((25,10,10,10,10,10,20)) # plh
+    sectionTypeChance.append(101)
+    textFactoryChance = ranlistFactory((35,20,25,10))
+    textFactoryChance.append(101)
+    sectionLengthChance = ranlistFactory((30,25,25,15))
+    sectionLengthChance.append(101)
     quota = []
     for sectionnum in range(1,numofSections+1):
         rndNum = rnd(0,100)
@@ -111,13 +121,12 @@ def regexRndChooser(numofSections):
             quota[-1]['sectionLength']=4
         else:
             quota[-1]['sectionLength']=5
+    
     # if numofSections>5 and d2():
-    #     capGrpPosStart = 3 # rnd(0,len(quota)-1)
+    #     capGrpPosStart = rnd(0,len(quota)-1)
     #     quota.insert(capGrpPosStart,'(')
-    #     capGrpPosEnd = 6 # rnd(capGrpPosStart+1,len(quota))
+    #     capGrpPosEnd = rnd(capGrpPosStart+2,len(quota))
     #     quota.insert(capGrpPosEnd,')')
-    #     for numQuota in quota[capGrpPosStart:capGrpPosEnd]:
-    #         print(numQuota)
     return quota
 
 
@@ -125,12 +134,13 @@ def regexSectionConstructor(numofSections): #mk. IIA
     theEx = []
     totalLength = 0
     theQuota = regexRndChooser(numofSections)
-    for numQuota in theQuota:
-        sectionLength = 0
-        match numQuota['type']:  
-            case 1: # [abc]
+    for numQuota in range(0,numofSections):
+        sectionType = theQuota[numQuota]['type']
+        sectionLength = theQuota[numQuota]['sectionLength']
+        textFactoryMode = theQuota[numQuota]['textFactoryMode']
+        match sectionType:  
+            case 1: # [abc] blacklist causes crashes
                 theEx.append('[')
-                sectionLength += 1
                 blacklist = []
 
                 if d2():
@@ -138,7 +148,7 @@ def regexSectionConstructor(numofSections): #mk. IIA
                     theEx.append('^')
                 else:
                     negatoryFlag = False
-                match numQuota['textFactoryMode']:
+                match textFactoryMode:
                     case 1: #a
                         if bd2(60) and negatoryFlag:
                             theEx.append('A-Z0-9') # TODO update to include symbols
@@ -156,16 +166,16 @@ def regexSectionConstructor(numofSections): #mk. IIA
 
                 # there is a better way involving maths
                 # centralize in  regexRndChooser
-                for char in range(1,rnd(1,4)+1):
-                    theEx.append(textFactory(numQuota['textFactoryMode'],blacklist))
-                    blacklist.append(theEx[-1])
+                # carshes happen here
+                for char in range(0,sectionLength):
+                    theEx.append(textFactory(textFactoryMode,blacklist))
+                    # blacklist.append(theEx[-1])
+                sectionLength = 1
                 theEx.append(']')
             case 2: # [A-Z]/[a-z]
-
                 # blacklist = []
-                sectionLength += 1
                 negatoryFlag = d2()
-                match rnd(1,5):
+                match rnd(1,5): # theres a better way involving: theEx[-1] = '', then appending ret of inteFact&Validor
                     case 1:
                         if d2():
                             theEx.append('[')
@@ -173,12 +183,14 @@ def regexSectionConstructor(numofSections): #mk. IIA
                                 theEx.append('^')
                             theEx.append('a-')
                             theEx.append(textFactory(1,('a','z')))
+                            textFactoryMode = 1
                         else:
                             theEx.append('[')
                             if negatoryFlag:
                                 theEx.append('^')
                             theEx.append('A-')
                             theEx.append(textFactory(2,('A','Z','a','z')))
+                            textFactoryMode = 2
                         theEx.append(']')
                     case 2:
                         if d2():
@@ -187,17 +199,21 @@ def regexSectionConstructor(numofSections): #mk. IIA
                                 theEx.append('^')
                             theEx.append(textFactory(1,('z','a')))
                             theEx.append('-z]')
+                            textFactoryMode = 1
                         else:
                             theEx.append('[')
                             if negatoryFlag:
                                 theEx.append('^')
                             theEx.append(textFactory(2,('Z','A','z','a')))
                             theEx.append('-Z]')
+                            textFactoryMode = 2
                     case _:
-                        theEx.append(integratedFactoryAndValidator())
+                        textFactoryMode = d2()
+                        theEx.append(integratedFactoryAndValidator(textFactoryMode))
+                        textFactoryMode += 1 # scary!
             case 3: # [A-z]
                 # blacklist = []
-                sectionLength += 1
+                sectionLength = 1
                 theEx.append('[')
                 if d2():
                     theEx.append('^')
@@ -213,13 +229,12 @@ def regexSectionConstructor(numofSections): #mk. IIA
                         theEx.append('-')
                         theEx.append(textFactory(1,()))
                 theEx.append(']')
+                textFactoryMode = 1 # its actually both 1 and 2
             case 4: # .
-                for char in range(0,numQuota['sectionLength']):
-                    sectionLength += 1
+                for char in range(0,sectionLength):
                     theEx.append('.')
             case 5: # .\.\*\s
-                for char in range(0,numQuota['sectionLength']):
-                    sectionLength += 1
+                for char in range(0,sectionLength):
                     match rnd(1,4):
                         case 1:
                             theEx.append('.')
@@ -228,34 +243,32 @@ def regexSectionConstructor(numofSections): #mk. IIA
                         case 3:
                             theEx.append('\*')
                         case 4:
-                            theEx.append('\s')
+                            theEx.append('\s')           
             case 6: # n45$! 
-                for char in range(0,numQuota['sectionLength']):
-                    sectionLength += 1
+                for char in range(0,sectionLength):
                     theEx.append(textFactory(rnd(1,5),()))
-            case 7: # (abc)                
+            case 7: # (abc), crashes
                 blacklist = []
-                if numQuota['textFactoryMode'] == 4:
-                    numQuota['textFactoryMode'] = rnd(1,3) # !!!!!!!!!!!! quotalist - NOT UPDATED ---- FIX!!!!!!!!!!
-
+                if textFactoryMode == 4:
+                    textFactoryMode = rnd(1,3)
                 if d2():
                     #(abc)
+                    # TODO BRACKETS HERE
                     theEx.append('(')
-                    # if d2(): # this breaks the game i dont know why
-                    #     theEx.append('^')
-                    for iterations in range(0,numQuota['sectionLength']):
-                        theEx.append(textFactory(numQuota['textFactoryMode'],blacklist))
-                        blacklist.append(theEx[-1])
+                    for iterations in range(0,sectionLength):
+                        theEx.append(textFactory(textFactoryMode,blacklist))
+                        # blacklist.append(theEx[-1])
                     theEx.append(')')
-
+                else:
                     #abc no brackets
-                    for iterations in range(0,numQuota['sectionLength']):
-                        theEx.append(textFactory(numQuota['textFactoryMode'],blacklist))
-                        blacklist.append(theEx[-1])    
-            case 8:
+                    for iterations in range(0,sectionLength):
+                        theEx.append(textFactory(textFactoryMode,blacklist))
+                        # blacklist.append(theEx[-1])
+            case _:
                 print('eh') # plh
-
-    totalLength += sectionLength
+        totalLength += sectionLength
+        theQuota[numQuota] = {'type':sectionType,'textFactoryMode':textFactoryMode,'sectionLength':sectionLength}
     return {'puzzle':theEx, 'sectionLength':totalLength, 'totalLength':totalLength} #to maintain compatiablilty
 
-print(listJoinery(regexSectionConstructor(3)['puzzle']))
+puzzle = regexSectionConstructor(13)
+print(listJoinery(puzzle['puzzle']),puzzle['sectionLength'])
