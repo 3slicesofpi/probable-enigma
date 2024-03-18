@@ -1,21 +1,59 @@
-from random import randint
+from random import randint as rnd
+from random import getrandbits
 from time import time
 import re
+def d2(): #fast!
+    return getrandbits(1)
+
+def bd2(TrueChance): #bit slower
+    num = rnd(0,100)
+    if num <= TrueChance:
+        return True
+    else: return False
+    
+
 
 textTuple = ('a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z')
 numberTuple = ('0','1','2','3','4','5','6','7','8','9')
 symbolTuple = ('!','#','%',':',';','<','>','=','_','~') 
-def integratedFactoryAndValidator():
-    textFactoryMode = randint(1,2)
+def textFactory(mode,blacklist):
+    finalSolution = ''
+    while True:
+        match mode:
+            case 1: # a-z
+                textPos = rnd(0,25)
+                finalSolution = str(textTuple[textPos])
+            case 2: # A-Z
+                textPos = rnd(0,25)
+                finalSolution = str(textTuple[textPos].upper())
+            case 3: # 0-9
+                textPos = rnd(0,9)
+                finalSolution = str(numberTuple[textPos])
+            case 4: # symbols
+                textPos = rnd(0,9)
+                finalSolution = str(symbolTuple[textPos])
+            case 5: # \s
+                textPos = 0
+                finalSolution = ' ' # NO BLACKLIST ON MODE 5
+        if not (finalSolution in blacklist):
+            return finalSolution
+
+def listJoinery(rawList):
+    joinedString = ''
+    for element in rawList:
+        joinedString = joinedString+str(element)
+    return joinedString
+
+def integratedFactoryAndValidator(textFactoryMode):
     localValidation = 0
     while localValidation == 0:
         try:
             negatoryFlag = ''
-            if randint(1,2) == 1:
+            if rnd(1,2) == 1:
                 negatoryFlag = '^'
-            char2 = randint(1,25)
-            char1 = randint(0,char2-1)
-            if randint(1,2) == 1:
+            char2 = rnd(1,25)
+            char1 = rnd(0,char2-1)
+            if textFactoryMode:
                 testExpression = '['+negatoryFlag+textTuple[char1].upper()+'-'+textTuple[char2].upper()+']'
             else:
                 testExpression = '['+negatoryFlag+textTuple[char1]+'-'+textTuple[char2]+']'
@@ -28,168 +66,211 @@ def integratedFactoryAndValidator():
             localValidation += 1
     return testExpression
 
-def regexSectionConstructor(puzzleLength): #mk. IB stable
-    puzzle = []
+def ranlistFactory(raw):
+    newList = [0]
+    for here in raw:
+        newList.append(here)
+        newList[-1]+=newList[-2]
+    return newList
+
+def regexRndChooser(numofSections):
+    # use better
+    sectionTypeChance = ranlistFactory((25,10,10,10,10,10,20)) # plh
+    sectionTypeChance.append(101)
+    textFactoryChance = ranlistFactory((35,20,25,10))
+    textFactoryChance.append(101)
+    sectionLengthChance = ranlistFactory((30,25,25,15))
+    sectionLengthChance.append(101)
+    quota = []
+    for sectionnum in range(1,numofSections+1):
+        rndNum = rnd(0,100)
+        if rndNum in range(sectionTypeChance[0],sectionTypeChance[1]-1):
+            quota.append({'type':1})
+        elif rndNum in range(sectionTypeChance[1],sectionTypeChance[2]-1):
+            quota.append({'type':2})
+        elif rndNum in range(sectionTypeChance[2],sectionTypeChance[3]-1):
+            quota.append({'type':3})
+        elif rndNum in range(sectionTypeChance[3],sectionTypeChance[4]-1):
+            quota.append({'type':4})
+        elif rndNum in range(sectionTypeChance[4],sectionTypeChance[5]-1):
+            quota.append({'type':5})
+        elif rndNum in range(sectionTypeChance[5],sectionTypeChance[6]-1):
+            quota.append({'type':6})
+        elif rndNum in range(sectionTypeChance[6],sectionTypeChance[7]-1):
+            quota.append({'type':7})
+        else:
+            quota.append({'type':8})
+        rndNum = rnd(0,100)
+        if rndNum in range(textFactoryChance[0],textFactoryChance[1]-1):
+            quota[-1]['textFactoryMode']=1
+        elif rndNum in range(textFactoryChance[1],textFactoryChance[2]-1):
+            quota[-1]['textFactoryMode']=2
+        elif rndNum in range(textFactoryChance[2],textFactoryChance[3]-1):
+            quota[-1]['textFactoryMode']=3
+        elif rndNum in range(textFactoryChance[3],textFactoryChance[4]-1):
+            quota[-1]['textFactoryMode']=4
+        else:
+            quota[-1]['textFactoryMode']=5
+        rndNum = rnd(0,100)
+        if rndNum in range(sectionLengthChance[0],sectionLengthChance[1]-1):
+            quota[-1]['sectionLength']=1
+        elif rndNum in range(sectionLengthChance[1],sectionLengthChance[2]-1):
+            quota[-1]['sectionLength']=2
+        elif rndNum in range(sectionLengthChance[2],sectionLengthChance[3]-1):
+            quota[-1]['sectionLength']=3
+        elif rndNum in range(sectionLengthChance[3],sectionLengthChance[4]-1):
+            quota[-1]['sectionLength']=4
+        else:
+            quota[-1]['sectionLength']=5
+    
+    # if numofSections>5 and d2():
+    #     capGrpPosStart = rnd(0,len(quota)-1)
+    #     quota.insert(capGrpPosStart,'(')
+    #     capGrpPosEnd = rnd(capGrpPosStart+2,len(quota))
+    #     quota.insert(capGrpPosEnd,')')
+    return quota
+
+
+def regexSectionConstructor(numofSections): #mk. IIA
+    theEx = []
     totalLength = 0
-    textFactoryMode = None
-    for iteration in range(0,puzzleLength):
-        sectionLength = 0
-        matchNumRand = randint(0,100)
-        blacklist = []
-        match True:
-            case True if matchNumRand in range(0,24):
-                #[abc]
-                puzzle.append('[')
-                textFactoryMode = randint(0,100)
-                if textFactoryMode in range(0,34):
-                    textFactoryMode = 1 #a
-                elif textFactoryMode in range(35,54):
-                    textFactoryMode = 2 #A
-                elif textFactoryMode in range(55,84):
-                    textFactoryMode = 3 #1
-                else:
-                    if randint(1,5)<=2:
-                        textFactoryMode = 4 #%
-                    else:
-                        textFactoryMode = 5 #/s
-                if randint(1,2) == 1:
-                    puzzle.append('^')
+    theQuota = regexRndChooser(numofSections)
+    for numQuota in range(0,numofSections):
+        sectionType = theQuota[numQuota]['type']
+        sectionLength = theQuota[numQuota]['sectionLength']
+        textFactoryMode = theQuota[numQuota]['textFactoryMode']
+        match sectionType:  
+            case 1: # [abc] blacklist causes crashes
+                theEx.append('[')
+                blacklist = []
 
-                for iteration in range(0,randint(1,4)):
-                    puzzle.append(textFactory(textFactoryMode,blacklist))
-                    blacklist.append(puzzle[-1])
-                puzzle.append(']')
-                sectionLength += 1
-                
-            case True if matchNumRand in range(25,44):
-                #[a-c]
-                puzzle.append(integratedFactoryAndValidator())
-                sectionLength += 1
-            case True if matchNumRand in range(45,64):
-                #[A-c]
-                puzzle.append('[')
-                if randint(1,2) == 1:
-                    puzzle.append('^')
-                puzzle.append(textFactory(2,blacklist))
-                puzzle.append('-')
-                puzzle.append(textFactory(1,blacklist))
-                puzzle.append(']')
-                sectionLength += 1
-            case True if matchNumRand in range(65,100):
-                #abc
-                textFactoryMode = randint(0,100)
-                if textFactoryMode in range(0,34):
-                    textFactoryMode = 1 #a
-                elif textFactoryMode in range(35,54):
-                    textFactoryMode = 2 #A
-                elif textFactoryMode in range(55,84):
-                    textFactoryMode = 3 #1
+                if d2():
+                    negatoryFlag = True
+                    theEx.append('^')
                 else:
-                    textFactoryMode = 4 #/s
-                match randint(1,2):
+                    negatoryFlag = False
+                match textFactoryMode:
+                    case 1: #a
+                        if bd2(60) and negatoryFlag:
+                            theEx.append('A-Z0-9') # TODO update to include symbols
+                    case 2: #A
+                        if bd2(60) and negatoryFlag:
+                            theEx.append('a-z0-9')
+                    case 3: #1
+                        if bd2(60) and negatoryFlag:
+                            theEx.append('A-z')
+                    case 4: #%
+                        if d2() and negatoryFlag:
+                            theEx.append('A-z0-9') #remain as is
+                    case 5:
+                        pass
+
+                # there is a better way involving maths
+                # centralize in  regexRndChooser
+                # carshes happen here
+                for char in range(0,sectionLength):
+                    theEx.append(textFactory(textFactoryMode,blacklist))
+                    # blacklist.append(theEx[-1])
+                sectionLength = 1
+                theEx.append(']')
+            case 2: # [A-Z]/[a-z]
+                # blacklist = []
+                negatoryFlag = d2()
+                match rnd(1,5): # theres a better way involving: theEx[-1] = '', then appending ret of inteFact&Validor
                     case 1:
-                        #(abc)
-                        puzzle.append('(')
-                        if randint(1,2) == 1:
-                            puzzle.append('^')
-                        matchNumRand = randint(0,100) #watch out
-                        if matchNumRand in range(0,23):
-                            sectionLength = 1
-                        elif matchNumRand in range(35,69):
-                            sectionLength = 2
-                        elif matchNumRand in range(70,84):
-                            sectionLength = 3
-                        elif matchNumRand in range(85,94):
-                            sectionLength = 4
-                        else: 
-                            sectionLength = 5
-                        for iterations in range(0,sectionLength):
-                            puzzle.append(textFactory(textFactoryMode,blacklist))
-                            blacklist.append(puzzle[-1])
-                        puzzle.append(')')
-                    case _:
-                        #abc no brackets
-                        matchNumRand = randint(0,100) #watch out
-                        if matchNumRand in range(0,39):
-                            sectionLength = 1
-                        elif matchNumRand in range(40,74):
-                            sectionLength = 2
-                        elif matchNumRand in range(75,89):
-                            sectionLength = 3
+                        if d2():
+                            theEx.append('[')
+                            if negatoryFlag:
+                                theEx.append('^')
+                            theEx.append('a-')
+                            theEx.append(textFactory(1,('a','z')))
+                            textFactoryMode = 1
                         else:
-                            sectionLength = 4
-                        for iterations in range(0,sectionLength):
-                            puzzle.append(textFactory(textFactoryMode,blacklist))
-                            blacklist.append(puzzle[-1])
-
-        
-
+                            theEx.append('[')
+                            if negatoryFlag:
+                                theEx.append('^')
+                            theEx.append('A-')
+                            theEx.append(textFactory(2,('A','Z','a','z')))
+                            textFactoryMode = 2
+                        theEx.append(']')
+                    case 2:
+                        if d2():
+                            theEx.append('[')
+                            if negatoryFlag:
+                                theEx.append('^')
+                            theEx.append(textFactory(1,('z','a')))
+                            theEx.append('-z]')
+                            textFactoryMode = 1
+                        else:
+                            theEx.append('[')
+                            if negatoryFlag:
+                                theEx.append('^')
+                            theEx.append(textFactory(2,('Z','A','z','a')))
+                            theEx.append('-Z]')
+                            textFactoryMode = 2
+                    case _:
+                        textFactoryMode = d2()
+                        theEx.append(integratedFactoryAndValidator(textFactoryMode))
+                        textFactoryMode += 1 # scary!
+            case 3: # [A-z]
+                # blacklist = []
+                sectionLength = 1
+                theEx.append('[')
+                if d2():
+                    theEx.append('^')
+                match rnd(1,5):
+                    case 1:
+                        theEx.append('A-')
+                        theEx.append(textFactory(1,('a')))
+                    case 2:
+                        theEx.append(textFactory(2,('Z','z')))
+                        theEx.append('-z')
+                    case _:
+                        theEx.append(textFactory(2,()))
+                        theEx.append('-')
+                        theEx.append(textFactory(1,()))
+                theEx.append(']')
+                textFactoryMode = 1 # its actually both 1 and 2
+            case 4: # .
+                for char in range(0,sectionLength):
+                    theEx.append('.')
+            case 5: # .\.\*\s
+                for char in range(0,sectionLength):
+                    match rnd(1,4):
+                        case 1:
+                            theEx.append('.')
+                        case 2:
+                            theEx.append('\.')
+                        case 3:
+                            theEx.append('\*')
+                        case 4:
+                            theEx.append('\s')           
+            case 6: # n45$! 
+                for char in range(0,sectionLength):
+                    theEx.append(textFactory(rnd(1,5),()))
+            case 7: # (abc), crashes
+                blacklist = []
+                if textFactoryMode == 4:
+                    textFactoryMode = rnd(1,3)
+                if d2():
+                    #(abc)
+                    # TODO BRACKETS HERE
+                    theEx.append('(')
+                    for iterations in range(0,sectionLength):
+                        theEx.append(textFactory(textFactoryMode,blacklist))
+                        # blacklist.append(theEx[-1])
+                    theEx.append(')')
+                else:
+                    #abc no brackets
+                    for iterations in range(0,sectionLength):
+                        theEx.append(textFactory(textFactoryMode,blacklist))
+                        # blacklist.append(theEx[-1])
+            case _:
+                print('eh') # plh
         totalLength += sectionLength
-    return {'puzzle':puzzle, 'sectionLength':totalLength, 'totalLength':totalLength} #to maintain compatiablilty
+        theQuota[numQuota] = {'type':sectionType,'textFactoryMode':textFactoryMode,'sectionLength':sectionLength}
+    return {'puzzle':theEx, 'sectionLength':totalLength, 'totalLength':totalLength} #to maintain compatiablilty
 
-def textFactory(mode,blacklist):
-    ignition = True
-    finalSolution = ''
-    while (finalSolution in blacklist) or ignition:
-        ignition = False
-        match mode:
-            case 1: # a-z
-                textPos = randint(0,25)
-                finalSolution = str(textTuple[textPos])
-            case 2: # A-Z
-                textPos = randint(0,25)
-                finalSolution = str(textTuple[textPos].upper())
-            case 3: # 0-9
-                textPos = randint(0,9)
-                finalSolution = str(numberTuple[textPos])
-            case 4: # symbols
-                textPos = randint(0,9)
-                finalSolution = str(symbolTuple[textPos])
-            case 5: # \s
-                textPos = 0
-                finalSolution = ' ' # NO BLACKLIST ON MODE 5
-    return finalSolution
-
-def listJoinery(rawList):
-    joinedString = ''
-    for element in rawList:
-        joinedString = joinedString+str(element)
-    return joinedString
-
-
-def gameSetup(argType,argDict):
-    match argType:
-        case 1: # difficulty scale, not endless
-            match argDict['difficulty']:
-                case 0:
-                    argDict = {'givenTime':0,'givenChars':0,'penaltyTime':True,'penaltyChars':True,'numSections':1,'randSections':0,'numPuzzles':5}
-                case 1:
-                    argDict = {'givenTime':1,'givenChars':1,'penaltyTime':True,'penaltyChars':True,'numSections':2,'randSections':1,'numPuzzles':5}
-                case 2:
-                    argDict = {'givenTime':2,'givenChars':2,'penaltyTime':True,'penaltyChars':True,'numSections':3,'randSections':1,'numPuzzles':10}
-                case 3:
-                    argDict = {'givenTime':3,'givenChars':3,'penaltyTime':True,'penaltyChars':True,'numSections':5,'randSections':2,'numPuzzles':13}
-
-        case 2: # difficulty scale endless
-            match argDict['difficulty']:
-                case 0:
-                    argDict = {'givenTime':0,'givenChars':0,'penaltyTime':True,'penaltyChars':True,'numSections':2,'randSections':1}
-                case 1:
-                    argDict = {'givenTime':1,'givenChars':1,'penaltyTime':True,'penaltyChars':True,'numSections':2,'randSections':1}
-                case 2:
-                    argDict = {'givenTime':1,'givenChars':2,'penaltyTime':True,'penaltyChars':True,'numSections':3,'randSections':1}
-                case 3:
-                    argDict = {'givenTime':2,'givenChars':3,'penaltyTime':True,'penaltyChars':True,'numSections':4,'randSections':2}
-            argDict['numPuzzles'] = None
-
-
-        case 3: # allargsgiven not endless  
-            if argDict['numPuzzles'] == (0 or None):
-                argDict['numPuzzles'] = randint(5,25)
-        case 4: 
-            argDict['numPuzzles'] = None
-    return argDict
-       
 def gamePlay(givenTime,givenChars,numSections):
     timeAnchorLocal = time()
     theExpression = regexSectionConstructor(numSections)
@@ -264,9 +345,9 @@ def gameSession(argDict):
     for iteration in range(0,argDict['numPuzzles']):
         print('Puzzle',iteration)
         puzzleResult = gamePlay(
-                argDict['givenTime']+randint(randNamesFloor[0],randNamesCeil[0]),
-                argDict['givenChars']+randint(randNamesFloor[1],randNamesCeil[1]),
-                argDict['numSections']+randint(randNamesFloor[2],randNamesCeil[2])
+                argDict['givenTime']+rnd(randNamesFloor[0],randNamesCeil[0]),
+                argDict['givenChars']+rnd(randNamesFloor[1],randNamesCeil[1]),
+                argDict['numSections']+rnd(randNamesFloor[2],randNamesCeil[2])
                 )
         
         score += 1
@@ -316,6 +397,7 @@ def statsViewer(stats,mode):
                 print(str(index)+'.',iteration[str(mode)])
 
 
-
-
+# TODO 
+# EXCEPTIONCATCHER
+gameSession(argDict)
     
