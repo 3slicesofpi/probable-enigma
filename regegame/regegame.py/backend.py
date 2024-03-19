@@ -399,5 +399,4 @@ def statsViewer(stats,mode):
 
 # TODO 
 # EXCEPTIONCATCHER
-gameSession(argDict)
     
