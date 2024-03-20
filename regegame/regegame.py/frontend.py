@@ -531,12 +531,17 @@ def ranlistFactory(raw):
 
 def regexRndChooser(numofSections):
     # use better
-    sectionTypeChance = ranlistFactory((25,10,10,10,10,10,20)) # plh
-    sectionTypeChance.append(101)
-    textFactoryChance = ranlistFactory((35,20,25,10))
-    textFactoryChance.append(101)
-    sectionLengthChance = ranlistFactory((30,25,25,15))
-    sectionLengthChance.append(101)
+    # sectionTypeChance = ranlistFactory((25,10,10,10,10,10,20)) # plh
+    # sectionTypeChance.append(101)
+    # textFactoryChance = ranlistFactory((35,20,25,10))
+    # textFactoryChance.append(101)
+    # sectionLengthChance = ranlistFactory((30,25,25,15))
+    # sectionLengthChance.append(101)
+    # quantifierTypeChance = ranlistFactory((10,10,10,10))
+    sectionTypeChance = (0,25,35,45,55,65,75,95,101)
+    textFactoryChance = (0,35,55,80,90,101)
+    sectionLengthChance = (0,30,55,80,95,101)
+    quantifierTypeChance = (0,10,20,30,70,101)
     quota = []
     for sectionnum in range(1,numofSections+1):
         rndNum = rnd(0,100)
@@ -578,6 +583,17 @@ def regexRndChooser(numofSections):
             quota[-1]['sectionLength']=4
         else:
             quota[-1]['sectionLength']=5
+        rndNum=rnd(0,100)
+        if rndNum in range(quantifierTypeChance[0],quantifierTypeChance[1]-1):
+            quota[-1]['quantifierType']=1
+        elif rndNum in range(quantifierTypeChance[1],quantifierTypeChance[2]-1):
+            quota[-1]['quantifierType']=2
+        elif rndNum in range(quantifierTypeChance[2],quantifierTypeChance[3]-1):
+            quota[-1]['quantifierType']=3
+        elif rndNum in range(quantifierTypeChance[3],quantifierTypeChance[4]-1):
+            quota[-1]['quantifierType']=4
+        else:
+            quota[-1]['quantifierType']=5
     
     # if numofSections>5 and d2():
     #     capGrpPosStart = rnd(0,len(quota)-1)
@@ -595,6 +611,7 @@ def regexSectionConstructor(numofSections): #mk. IIA
         sectionType = theQuota[numQuota]['type']
         sectionLength = theQuota[numQuota]['sectionLength']
         textFactoryMode = theQuota[numQuota]['textFactoryMode']
+        quantifierType = theQuota[numQuota]['quantifierType'] #TODO
         match sectionType:  
             case 1: # [abc] blacklist causes crashes
                 theEx.append('[')
@@ -724,6 +741,31 @@ def regexSectionConstructor(numofSections): #mk. IIA
             case _:
                 theEx.append('.')
                 print('eh') # plh
+        match quantifierType:
+            case 1:
+                theEx.append('+')
+            case 2:
+                theEx.append('*')
+                if bd2(70):
+                    if sectionLength:
+                        sectionLength = 1
+                    else:
+                        sectionLength = 0
+            case 3:
+                theEx.append('?')
+                if bd2(90):
+                    if sectionLength:
+                        sectionLength = 1
+                    else:
+                        sectionLength = 0
+            case 4:
+                theEx.append('{')
+                quantifierRand = rnd(0,3)
+                sectionLength = quantifierRand
+                theEx.append(str(quantifierRand))
+                theEx.append('}')
+            case _:
+                pass
 
         totalLength += sectionLength
         theQuota[numQuota] = {'type':sectionType,'textFactoryMode':textFactoryMode,'sectionLength':sectionLength}
