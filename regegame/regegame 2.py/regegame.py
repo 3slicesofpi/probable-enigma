@@ -396,7 +396,7 @@ from time import time
 def gameSession(argDict,modeDict):
     timeAnchorSession = time()
     score = argDict['givenScore']
-    stats = [] # list of dicts
+    stats = {}
     #time, chars, sections
     randNamesFloor = [0,0,0]
     randNamesCeil = [0,0,0]
@@ -827,7 +827,7 @@ while True:
         case 'menuTutorial':
             currentMenuPos = menuTutorial()
         case 'menuScenario':
-            currentMenuPos = menuScenario()
+            currentMenuPos = menuScenario() 
         case 'menuView':
             currentMenuPos = menuView()
         case 'menuSessionSetup':

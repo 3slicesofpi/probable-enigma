@@ -130,7 +130,6 @@ def regexRndChooser(numofSections):
     #     quota.insert(capGrpPosEnd,')')
     return quota
 
-
 def regexSectionConstructor(numofSections): #mk. IIA
     theEx = []
     totalLength = 0

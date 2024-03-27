@@ -5,8 +5,8 @@ def regexSectionConstructor(numofSections):
 
 argDict = { 
     'penCorrect':True,'givenScore':0,
-    'givenTime':0,'randTime':0,'penTime':False,'randModeTime':0,
-    'givenChars':1,'randChars':0,'penChars':False,'randModeChars':1,
+    'givenTime':0,'randTime':0,'penTime':True,'randModeTime':0,
+    'givenChars':1,'randChars':0,'penChars':True,'randModeChars':1,
     'numSections':3,'randSections':0,'randModeSections':2,
     'numPuzzles':5,'sectionTime':2
     }
@@ -15,6 +15,9 @@ modeDict = {'gamemode':'classic','deathmode':'scoredown'}
 from time import time
 from random import randint as rnd
 import re
+
+
+
 def gameSession():
     timeAnchorSession = time()
     stats = []
@@ -51,9 +54,9 @@ def gameSession():
     else:
         totalScore = 0
     killswitch = False
-    while (puzzleNum <= argDict['numPuzzles']):  #or killswitch):
+    while (puzzleNum < argDict['numPuzzles']):  #or killswitch):
         if killswitch: # i guess python hates non-pythonic code?
-            # use this to sendure killswutch kills gameSession
+            # use this to ensure killswitch kills gameSession
             return stats
         puzzleNum += 1
         print('puzzle no.:',puzzleNum)
@@ -61,8 +64,6 @@ def gameSession():
         totalSections = argDict['numSections']+rnd(randNamesFloor[2],randNamesCeil[2])
         totalTime = argDict['givenTime']+rnd(randNamesFloor[0],randNamesCeil[0])+totalSections*argDict['sectionTime']
         match modeDict['gamemode']:
-            # case 'scenario':
-            #     pass
             case _:
                 theEx = regexSectionConstructor(totalSections)
         totalChars = argDict['givenChars']+rnd(randNamesFloor[1],randNamesCeil[1])+theEx['totalSections']
@@ -91,19 +92,24 @@ def gameSession():
                 print('Exceeded character Limit of',totalChars,'; Your answer was',len(theAns),'long.')
         totalScore += localStats['score']
         stats.append(localStats)
+
+        # check whether to end the game
         match modeDict['deathmode']:
             case 'none':
                 pass
             case 'scoredown':
                 if totalScore <=0:
+                    print('Out of Score!')
                     killswitch = True
+                elif totalScore <=3:
+                    print('You only have',totalScore,'score left.')
             case 'timedown':
                 timeAnchorSession += totalTime
                 if time()>timeAnchorSession:
                     print('Out of time!')
                     killswitch = True
                 else:
-                    print(-int(time()-timeAnchorSession)+argDict['givenTime']+(argDict['numSections']*argDict['sectionTime']))
+                    print('Total time Left (Estimated):'-int(time()-timeAnchorSession)+argDict['givenTime']+(argDict['numSections']*argDict['sectionTime']))
         
     return stats
         
