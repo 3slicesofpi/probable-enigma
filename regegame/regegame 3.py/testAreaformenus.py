@@ -1,3 +1,13 @@
+# BEGINNER CODE CHECKLIST
+# - GLOBAL VARIABLES (4 at last count) TODO: REMOVE ALL OF THEM 
+# - WHILE TRUE:
+# - VARIABLE NAMES (lack thereof)
+# - BIG LONG DICTS
+
+# - at least classes are used
+
+
+
 class menuConstructor():
     def __init__(self,menuName):
         self.menuName = menuName
@@ -12,11 +22,8 @@ class menuConstructor():
 
     def addNewOptions(self,name,goto):
         # CALL THIS FIRST
-        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':goto}
+        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':goto,'type':'nav'}
     
-    def addCustomOptions(self,name,pos,goto):
-        self.directory[pos] = {'name':name,'goto':goto}
-
     def viewDirectory(self):
         print(f'You are now at: {self.menuName}')
         print('')
@@ -34,37 +41,50 @@ class menuConstructor():
             # except:
             #     print('Invalid input! Try Again.')
 
-class gameArgsConstructor(menuConstructor):
-    # figure out how to set new target
+class mcqConstructor_args(menuConstructor):
+    def __init__(self, menuName):
+        super().__init__(menuName)
+    def addGlobalOptions(self):
+        return super().addGlobalOptions()
     def addNewOptions(self, name, goto):
-        # CALL THIS FIRST
-        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':goto,'type':'nav'}
-    def addNewMultiChoice(self, name, goto):
-        # CALL THIS FIRST
-        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':goto,'type':'mcq'}
-    def addNewTFToggle(self, name, goto):
-        # CALL THIS FIRST
-        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':goto,'type':'tog'}
-    def addCustomOptions(self, name, pos, goto, type):
-        self.directory[pos] = {'name':name,'goto':goto,'type':type}
+        return super().addNewOptions(name, goto)
+    def addNewTFToggle(self,name,target):
+        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':target,'type':'tog'}
+    def addNewInputInt(self,name,target):
+        self.directory[str(len(self.directory)+1)] = {'name':name,'goto':target,'type':'inp'}
     def inputHandler(self):
         while True:
             userInput = input('>>>:')[0].upper() 
             for here in self.directory:
                 if userInput == here: # first iteration
-                    match self.directory[here]['type']:
+                    match self.directory['type']: 
                         case 'nav':
-                            return self.directory[here]['goto']
-                        case 'mcq':
-                            global gameArgs
-                            try:
-                                gameArgs['goto'] = int(input('>>>:'))
-                            except:
-                                print('Invalid Input.')
-                        case 'tog':
-                            global gameArgs
-                            gameArgs['goto'] = (not gameArgs['goto'])
-    
+                            self.directory[here]['goto']
+                        case 'tog':    
+                            # global args
+                            args[self.directory['name']] = (not args[self.directory['name']])
+                        case 'inp':
+                            # global args
+                            args[self.directory['name']] = int(input('Insert number>>>:'))             
+args = dict(
+    penCorrect = True, #penalties
+    penTime = False,
+    penChars = False,
+    startingScore = 0, #given per game
+    givenScore = 0,
+    givenTime = 0,
+    givenChars = 0,
+    sectionTime = 0, #given per section
+    sectionChars = 0,
+    randTime = (0,0), #modifies sectionTime/sectionChars
+    randChars = (0,0),
+    randSections = (0,0),
+    numSections = 5,
+    numPuzzles = 5)
+
+# class stats():
+#     NotImplemented
+# theStats = stats()
 
 def menuMain():
     content = menuConstructor('menuMain')
@@ -81,6 +101,7 @@ def menuMain():
 
 def menuCustom():
     content = menuConstructor('menuCustom')
+    content.addNewOptions('General Settings','mcqArgsGeneral')
     content.addNewOptions('Penalty Settings','mcqArgsPen')
     content.addNewOptions('Time Settings','mcqArgsTime')
     content.addNewOptions('Character Settings','mcqArgsChars')
@@ -91,6 +112,43 @@ def menuCustom():
     global goback
     goback = 'menuCustom'
     goto = content.inputHandler()
+
+def mcqArgsPen():
+    content = mcqConstructor_args('mcqArgsPen')
+    content.addNewTFToggle('Penalty fo Incorrect Answers','penCorrect')
+    content.addNewTFToggle('Exceed Puzzle Time Limit Penalty','penTime')
+    content.addNewTFToggle('Exceed Puzzle Character Limit Penalty','penChars')
+    content.addGlobalOptions()
+    content.viewDirectory
+    global goto
+    goto = content.inputHandler()
+
+def mcqArgsTime():
+    content = mcqConstructor_args('mcqArgsTime')
+    content.addNewTFToggle('Exceed Puzzle Time Limit Penalty','penTime')
+    content.addNewInputInt('Extra Time Per Game (s)','givenTime')
+    content.addNewInputInt('Extra Time per Section (s)','sectionTime')
+    content.addGlobalOptions()
+    content.viewDirectory()
+    global goto
+    goto = content.inputHandler()
+
+def mcqArgsChars():
+    content = mcqConstructor_args('mcqArgsChars')
+    content.addNewTFToggle('Exceed Puzzle Character Limit Penalty','penTime')
+    content.addNewInputInt('Extra Characters Per Game','givenChars')
+    content.addNewInputInt('Extra Characters per Section','sectionChars')
+    content.addGlobalOptions()
+    content.viewDirectory()
+    global goto
+    goto = content.inputHandler()
+
+def mcqArgsGeneral():
+    content = mcqConstructor_args('mcqArgsGeneral')
+    content.addNewInputInt('Number of puzzles','numPuzzles')
+    content.addNewInputInt('Number of Sections','numSections')
+    content.addNewInputInt('Extra Score per Game','givenScore') 
+
 
 def viewHelp():
     content = menuConstructor('viewHelp')
@@ -134,39 +192,95 @@ def mcqClassic():
     inputCheck = content.inputHandler()
     global goto
     match inputCheck:
-        case '1':
-            global gameArgs
-            gameArgs = {}# blah blah blah
+        case '1': #EZ
+            # TODO
+            global args
+            args = dict(
+    penCorrect = True, #penalties
+    penTime = True,
+    penChars = True,
+    startingScore = 0, #given per game
+    givenScore = 0, #given per puzzle
+    givenTime = 3,
+    givenChars = 3,
+    sectionTime = 5, #given per section
+    sectionChars = 2,
+    randTime = (0,0), #modifies sectionTime/sectionChars
+    randChars = (0,0),
+    randSections = (0,1),
+    numSections = 3,
+    numPuzzles = 5)
             if goback == 'menuCustom': #coming from mcqPresets
                 goto = goback
             else:
                 goto = 'gameSetup'
-        case '2':
-            global gameArgs
-            gameArgs = {}# blah blah blah
+        case '2': #MADOROTE
+            global args
+            args = dict(
+    penCorrect = True, #penalties
+    penTime = True,
+    penChars = True,
+    startingScore = 0, #given per game
+    givenScore = 0, #given per puzzle
+    givenTime = 2,
+    givenChars = 1,
+    sectionTime = 2, #given per section
+    sectionChars = 1,
+    randTime = (0,0), #modifies sectionTime/sectionChars
+    randChars = (0,0),
+    randSections = (1,2),
+    numSections = 4,
+    numPuzzles = 5)
             if goback == 'menuCustom': #coming from mcqPresets
                 goto = goback
             else:
                 goto = 'gameSetup'
-        case '3':
-            global gameArgs
-            gameArgs = {}# blah blah blah
+        case '3': #HORD
+            global args
+            args = dict(
+    penCorrect = True, #penalties
+    penTime = True,
+    penChars = True,
+    startingScore = 0, #given per game
+    givenScore = 0, #given per puzzle
+    givenTime = 2,
+    givenChars = 1,
+    sectionTime = 1, #given per section
+    sectionChars = 1,
+    randTime = (0,0), #modifies sectionTime/sectionChars
+    randChars = (0,0),
+    randSections = (2,2),
+    numSections = 5,
+    numPuzzles = 10)
             if goback == 'menuCustom': #coming from mcqPresets
                 goto = goback
             else:
                 goto = 'gameSetup'
-        case '4':
-            global gameArgs
-            gameArgs = {}# blah blah blah
+        case '4': #INSAME
+            global args
+            args = dict(
+    penCorrect = True, #penalties
+    penTime = True,
+    penChars = True,
+    startingScore = 0, #given per game
+    givenScore = 0, #given per puzzle
+    givenTime = 1,
+    givenChars = 0,
+    sectionTime = 0, #given per section
+    sectionChars = 0,
+    randTime = (0,0), #modifies sectionTime/sectionChars
+    randChars = (0,0),
+    randSections = (1,3),
+    numSections = 5,
+    numPuzzles = 15)
             if goback == 'menuCustom': #coming from mcqPresets
                 goto = goback
             else:
                 goto = 'gameSetup'
-        case _:
+        case _: #^above are exceptions
             goto = inputCheck
-            
-        
 
+# TODO: unglobal the global variable
 goback = 'menuMain'
 goto ='menuMain'
 while True:
@@ -187,6 +301,14 @@ while True:
         case 'mcqTutorial':
             goto = goback
             # mcqTutorial()
+        case 'mcqArgsPen':
+            mcqArgsPen()
+        case 'mcqArgsTime':
+            mcqArgsTime()
+        case 'mcqArgsChars':
+            mcqArgsChars()
+        case 'mcqArgsGeneral':
+            mcqArgsGeneral()
 
 
 
