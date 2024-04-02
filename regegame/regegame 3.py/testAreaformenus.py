@@ -1,10 +1,10 @@
 # BEGINNER CODE CHECKLIST
-# - GLOBAL VARIABLES (4 at last count) TODO: REMOVE ALL OF THEM 
 # - WHILE TRUE:
 # - VARIABLE NAMES (lack thereof)
 # - BIG LONG DICTS
 
 # - at least classes are used
+# - f-strings TODO: make them all doublequotes
 
 
 
@@ -16,9 +16,9 @@ class menuConstructor():
     def addGlobalOptions(self):
         self.directory['H'] = {'name':'Get Help','goto':'viewHelp','type':'nav'}
         self.directory['R'] = {'name':'Return to Main Menu','goto':'menuMain','type':'nav'}
-        if goback != 'mainMenu':
-            self.directory['E'] = {'name':'Go back to previous menu','goto':goback,'type':'nav'}
+        self.directory['E'] = {'name':'Go back to previous menu','goto':goback,'type':'nav'}
         self.directory['Q'] = {'name':'Quit Program','goto':'viewQuit','type':'nav'}
+        
 
     def addNewOptions(self,name,goto):
         # CALL THIS FIRST
@@ -32,12 +32,12 @@ class menuConstructor():
 
     def inputHandler(self):
         while True:
-            userInput = input('>>>:')[0].upper() 
+            userInput = input('Input a command >>>:')[0].upper() 
             for here in self.directory:
                 if userInput == here: # first iteration
                     return self.directory[here]['goto']
             # try: # second iteration
-            #     return self.directory[input('>>>:')[0].upper()]['goto']
+            #     return self.directory[input('Input a command >>>:')[0].upper()]['goto']
             # except:
             #     print('Invalid input! Try Again.')
 
@@ -52,20 +52,28 @@ class mcqConstructor_args(menuConstructor):
         self.directory[str(len(self.directory)+1)] = {'name':name,'goto':target,'type':'tog'}
     def addNewInputInt(self,name,target):
         self.directory[str(len(self.directory)+1)] = {'name':name,'goto':target,'type':'inp'}
+    def viewDirectory(self):
+        print(f'You are now at: {self.menuName}')
+        print('')
+        for here in self.directory:
+            if self.directory[here]['type'] == 'nav':
+                print(f"{here}. {self.directory[here]['name']}")
+            else:
+                print(f"{here}. {self.directory[here]['name']}: Current Value: {args[self.directory[here]['goto']]}")
+
     def inputHandler(self):
         while True:
-            userInput = input('>>>:')[0].upper() 
+            userInput = input('Input a command >>>:')[0].upper() 
             for here in self.directory:
                 if userInput == here: # first iteration
-                    match self.directory['type']: 
+                    match self.directory[here]['type']: 
                         case 'nav':
-                            self.directory[here]['goto']
-                        case 'tog':    
-                            # global args
-                            args[self.directory['name']] = (not args[self.directory['name']])
+                            return self.directory[here]['goto']
+                        case 'tog':
+                            args[self.directory[here]['goto']] = (not args[self.directory[here]['goto']])
+                            print(f"{self.directory[here]['goto']} is now {args[self.directory[here]['goto']]}")
                         case 'inp':
-                            # global args
-                            args[self.directory['name']] = int(input('Insert number>>>:'))             
+                            args[self.directory[here]['goto']] = int(input(f"Change {self.directory[here]['goto']} to >>>:"))             
 args = dict(
     penCorrect = True, #penalties
     penTime = False,
@@ -87,102 +95,100 @@ args = dict(
 # theStats = stats()
 
 def menuMain():
-    content = menuConstructor('menuMain')
+    content = menuConstructor('Main Menu')
     content.addNewOptions('Classic','mcqClassic')
     content.addNewOptions('Custom Game','menuCustom')
     content.addNewOptions('Other Gamemodes','mcqGamemode')
     content.addNewOptions('Tutorial','mcqTutorial')
-    content.addGlobalOptions()
+    content.directory['H'] = {'name':'Get Help','goto':'viewHelp'}
+    content.directory['Q'] = {'name':'Exit Program','goto':'viewQuit'}
     content.viewDirectory()
-    global goto
-    global goback
     goback = 'menuMain'
     goto = content.inputHandler()
+    return {'goto':goto,'goback':goback}
 
 def menuCustom():
-    content = menuConstructor('menuCustom')
+    content = menuConstructor('View and Edit Current Settings')
     content.addNewOptions('General Settings','mcqArgsGeneral')
     content.addNewOptions('Penalty Settings','mcqArgsPen')
     content.addNewOptions('Time Settings','mcqArgsTime')
     content.addNewOptions('Character Settings','mcqArgsChars')
     content.addNewOptions('Difficulty Presets','mcqClassic')
+    content.directory['S'] = {'name':'Start Game using Current Settings','goto':'gameSetup'}
     content.addGlobalOptions()
     content.viewDirectory()
-    global goto
-    global goback
     goback = 'menuCustom'
     goto = content.inputHandler()
+    return {'goto':goto,'goback':goback}
 
 def mcqArgsPen():
-    content = mcqConstructor_args('mcqArgsPen')
-    content.addNewTFToggle('Penalty fo Incorrect Answers','penCorrect')
+    content = mcqConstructor_args('Penalty Settings')
+    content.addNewTFToggle('Penalty for Incorrect Answers','penCorrect')
     content.addNewTFToggle('Exceed Puzzle Time Limit Penalty','penTime')
     content.addNewTFToggle('Exceed Puzzle Character Limit Penalty','penChars')
     content.addGlobalOptions()
-    content.viewDirectory
-    global goto
-    goto = content.inputHandler()
+    content.viewDirectory()
+    return {'goto':content.inputHandler()}
 
 def mcqArgsTime():
-    content = mcqConstructor_args('mcqArgsTime')
+    content = mcqConstructor_args('Time Settings')
     content.addNewTFToggle('Exceed Puzzle Time Limit Penalty','penTime')
     content.addNewInputInt('Extra Time Per Game (s)','givenTime')
     content.addNewInputInt('Extra Time per Section (s)','sectionTime')
     content.addGlobalOptions()
     content.viewDirectory()
-    global goto
-    goto = content.inputHandler()
+    return {'goto':content.inputHandler()}
 
 def mcqArgsChars():
-    content = mcqConstructor_args('mcqArgsChars')
+    content = mcqConstructor_args('Character Settings')
     content.addNewTFToggle('Exceed Puzzle Character Limit Penalty','penTime')
     content.addNewInputInt('Extra Characters Per Game','givenChars')
     content.addNewInputInt('Extra Characters per Section','sectionChars')
     content.addGlobalOptions()
     content.viewDirectory()
-    global goto
-    goto = content.inputHandler()
+    return {'goto':content.inputHandler()}
 
 def mcqArgsGeneral():
-    content = mcqConstructor_args('mcqArgsGeneral')
+    content = mcqConstructor_args('General Settings')
     content.addNewInputInt('Number of puzzles','numPuzzles')
     content.addNewInputInt('Number of Sections','numSections')
     content.addNewInputInt('Extra Score per Game','givenScore') 
-
+    content.addGlobalOptions()
+    content.viewDirectory()
+    return {'goto':content.inputHandler()}
 
 def viewHelp():
-    content = menuConstructor('viewHelp')
+    content = menuConstructor('Help Menu')
     print ('''
 TODO populate this  
 DO NOT FORGET!!!!11!!!
            
 if u see this i forgor :skull::skull:
 ''')
-    content.addCustomOptions('Go back to previous menu','E',goback)
-    content.addCustomOptions('Return to Main Menu','R','menuMain')
+    content.directory['E'] = {'name':'Go back to previous menu','goto': goback}
+    content.directory['R'] = {'name':'Return to Main Menu','goto':'menuMain'}
     content.viewDirectory()
-    global goto
-    goto = content.inputHandler()
+    return {'goto':content.inputHandler()}
 
 def viewQuit():
-    content = menuConstructor('viewQuit')
+    content = menuConstructor('Exit Menu')
     print('''
 Are you sure you want to exit this program?
 ''')
-    content.addCustomOptions('Yes. I want to quit.','Y','EXITFLAG')
-    content.addCustomOptions('Go back to previous menu','E',goback)
-    content.addCustomOptions('Return to Main Menu','R','menuMain')
+    content.directory['Y'] = {'name':'Yes. I want to quit.','goto':'EXITFLAG'}
+    content.directory['E'] = {'name':'Go back to previous menu','goto':goback}
+    content.directory['R'] = {'name':'Return to Main Menu','goto':'menuMain'}
     content.viewDirectory()
-    global goto
     goto = content.inputHandler()
     if goto == 'EXITFLAG':
         print('Exiting Program... See you next time!')
         exit()
     else:
-        return goto
+        return {'goto':goto}
 
 def mcqClassic():
-    content = menuConstructor('mcqClassic')
+    args = None
+    content = menuConstructor('Difficulty Select')
     content.addNewOptions('Easy Difficulty','1')
     content.addNewOptions('Medium Difficulty','2')
     content.addNewOptions('Hard Difficulty','3')
@@ -190,11 +196,8 @@ def mcqClassic():
     content.addGlobalOptions()
     content.viewDirectory()
     inputCheck = content.inputHandler()
-    global goto
     match inputCheck:
         case '1': #EZ
-            # TODO
-            global args
             args = dict(
     penCorrect = True, #penalties
     penTime = True,
@@ -215,7 +218,6 @@ def mcqClassic():
             else:
                 goto = 'gameSetup'
         case '2': #MADOROTE
-            global args
             args = dict(
     penCorrect = True, #penalties
     penTime = True,
@@ -236,7 +238,6 @@ def mcqClassic():
             else:
                 goto = 'gameSetup'
         case '3': #HORD
-            global args
             args = dict(
     penCorrect = True, #penalties
     penTime = True,
@@ -257,7 +258,6 @@ def mcqClassic():
             else:
                 goto = 'gameSetup'
         case '4': #INSAME
-            global args
             args = dict(
     penCorrect = True, #penalties
     penTime = True,
@@ -279,6 +279,16 @@ def mcqClassic():
                 goto = 'gameSetup'
         case _: #^above are exceptions
             goto = inputCheck
+    if args != None:
+        return {'goto':goto,'goback':goback,'args':args}
+    else:
+        return {'goto':goto,'goback':goback}
+
+def gameSetup():
+    print('Current Settings')
+    for here in args:
+        print(f"{here}:{args[here]}")
+    return {'goto':goback}
 
 # TODO: unglobal the global variable
 goback = 'menuMain'
@@ -286,15 +296,15 @@ goto ='menuMain'
 while True:
     match goto:
         case 'menuMain':
-            menuMain()
+            menuInfo = menuMain()
         case 'viewHelp':
-            viewHelp()
+            menuInfo = viewHelp()
         case 'viewQuit':
-            viewQuit()
+            menuInfo = viewQuit()
         case 'mcqClassic':
-            mcqClassic()
+            menuInfo = mcqClassic()
         case 'menuCustom':
-            menuCustom()
+            menuInfo = menuCustom()
         case 'mcqGamemode':
             goto = goback
             # mcqGamemode()
@@ -302,13 +312,22 @@ while True:
             goto = goback
             # mcqTutorial()
         case 'mcqArgsPen':
-            mcqArgsPen()
+            menuInfo = mcqArgsPen()
         case 'mcqArgsTime':
-            mcqArgsTime()
+            menuInfo = mcqArgsTime()
         case 'mcqArgsChars':
-            mcqArgsChars()
+            menuInfo = mcqArgsChars()
         case 'mcqArgsGeneral':
-            mcqArgsGeneral()
-
+            menuInfo = mcqArgsGeneral()
+        case 'gameSetup':
+            menuInfo = gameSetup()
+    if 'goto' in menuInfo:
+        goto = menuInfo['goto']
+    if 'goback' in menuInfo:
+        goback = menuInfo['goback']
+    if 'args' in menuInfo: #TODO: modify args line by line.
+        args = menuInfo['args']
+    if 'stats' in menuInfo:
+        stats = menuInfo['stats']
 
 
