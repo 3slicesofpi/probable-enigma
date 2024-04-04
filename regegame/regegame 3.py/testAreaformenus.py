@@ -306,7 +306,28 @@ def gameSetup(): #PLACEHOLDER
     print('Number of Puzzles:',args['numPuzzles'])
     print('Gamemode:',args['gamemode'])
     print('Deathmode:',args['deathmode'])
-    input('Press a key to start >>>:')
+    placeholder = input('Press a key to start >>>:')
+    try:
+        placeholder = int(placeholder)
+    except:
+        placeholder = 0
+    for here in ('randTime','randChars','randSections'):
+        match placeholder:
+            case 1: #addonly 
+                args[here][0] = 1
+                args[here][1] = 0
+            case 2: #minusonly 
+                args[here][0] = 0
+                args[here][1] = -1
+            case 3: #reducedminus
+                args[here][0] = 1
+                args[here][1] = -1
+            case 4: #add add 
+                args[here][0] = 2
+                args[here][1] = 1
+            case 5: #reducedadd 
+                args[here][0] = 1
+                args[here][1] = -1
     result = gameSession()
     totalScore = 0
     for here in result:
