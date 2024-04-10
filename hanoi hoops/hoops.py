@@ -140,10 +140,10 @@ while running:
             iter.updatePos()
 
         # draw rects
-        for iter in (rect1,rect2):
+        # for iter in (rect1,rect2):
 
-            pygame.draw.rect(iter.display,iter.colour,(iter.x,iter.y,iter.width,iter.height))
-        pygame.display.update()
+        #     pygame.draw.rect(iter.display,iter.colour,(iter.x,iter.y,iter.width,iter.height))
+        # pygame.display.update()
         displayUpdate = False
     else:
         pass
@@ -162,11 +162,11 @@ while running:
         for iter in (pole1,pole2,pole3):
             iter.colour = colours().blue
         displayUpdate = True
-    if keys[pygame.K_3]:
-        rect1.colour = (rnd(0,254),rnd(0,254),rnd(0,254))
-        displayUpdate = True
-    if keys[pygame.K_4]:
-        rect2.colour = (rnd(0,254),rnd(0,254),rnd(0,254))
-        displayUpdate = True
+    # if keys[pygame.K_3]:
+    #     rect1.colour = (rnd(0,254),rnd(0,254),rnd(0,254))
+    #     displayUpdate = True
+    # if keys[pygame.K_4]:
+    #     rect2.colour = (rnd(0,254),rnd(0,254),rnd(0,254))
+    #     displayUpdate = True
     
     

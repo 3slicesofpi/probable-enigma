@@ -5,6 +5,7 @@ class colours(): # with a u
     blue = (0, 0, 128) 
     black = (0, 0, 0) 
     red = (255, 0, 0)
+    yellow = (239, 192, 80)
     custom = {}
     def customColour(self,name,nums):
         try:
@@ -16,8 +17,6 @@ class colours(): # with a u
         self.custom[name] = nums
     def getColour(self,name):
         match name:
-            case 'yellow':
-                self.yellow = (239, 192, 80)
             case 'beige':
                 self.beige = (223, 207, 190)
             case 'orange':
