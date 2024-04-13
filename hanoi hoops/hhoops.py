@@ -33,12 +33,6 @@ class spriteConstructor():
             if (input('continue?') or True):
                 run = False
 
-class handConstructor(spriteConstructor):
-    holding = None
-    def showOrigin(self):
-        return super().showOrigin()
-    def showOriginOverrideAll(self):
-        return super().showOriginOverrideAll()
 
 class rectConstructor(spriteConstructor):
     rlength = 0
@@ -84,7 +78,7 @@ class poleConstructor(spriteConstructor):
     def createAnchors(self,numofAnchors):
         self.anchorPos = []
         for iterations in range(numofAnchors):
-            self.anchorPos.append([self.x,self.y-(0.5+iterations)*(hoopHeight),None])
+            self.anchorPos.append([self.x,self.y-(0.5+iterations)*(hoopHeight)])
         
     def showOrigin(self):
         return super().showOrigin()
@@ -112,25 +106,67 @@ poleContainer = [poleLeft,poleCenter,poleRight]
 
 hoop1 = rectConstructor()
 hoop1.initMe(poleLeft.anchorPos[0][0],poleLeft.anchorPos[0][1],hoopLength,hoopHeight)
-hoop1.colour = hoop1.colourSelection.red
-poleLeft.anchorPos[0][2] = 0 # i do not like this, temp solution only
+hoop1.colour = hoop1.colourSelection.red # i do not like this, temp solution only
 hoop1.showMe()
 hoop2 = rectConstructor()
 hoop2.initMe(poleLeft.anchorPos[1][0],poleLeft.anchorPos[1][1],hoopLength-15,hoopHeight)
 hoop2.colour = hoop2.colourSelection.green
-poleLeft.anchorPos[1][2] = 1
 hoop2.showMe()
 hoop3 = rectConstructor()
 hoop3.initMe(poleLeft.anchorPos[2][0],poleLeft.anchorPos[2][1],hoopLength-30,hoopHeight)
 hoop3.colour = hoop3.colourSelection.blue
-poleLeft.anchorPos[2][2] = 2
 hoop3.showMe()
-hoopContainer = [hoop1,hoop2,hoop3] # id of hoop1 = 0
 
-hand = handConstructor()
-hand.x = poleContainer[0].x
-hand.y = poleContainer[1].r2y-hoopHeight
-hand.holding = None
+hoopContainer = (hoop1,hoop2,hoop3)
+
+anchorData = [None]
+foundit = False
+for iteration in range(len(poleContainer)):
+    poleList = []
+    if not foundit:
+        for jteration in range(len(hoopContainer)):
+            poleList.append(jteration)
+        foundit = True
+    else:
+        for jteration in range(len(hoopContainer)):
+            poleList.append(None)
+    poleList.append(256)
+    anchorData.append(poleList)
+
+# [None, [0, 1, 2], [None, None, None], [None, None, None]]
+
+class inputMoveHoops():
+    hoopNum = 1
+
+    def takeHoop(self):
+        foundit = False
+        for here in range(len(anchorData[self.hoopNum])-1):
+            if (anchorData[self.hoopNum][here] != None) and not foundit:
+                foundit = True
+                anchorData[0] = anchorData[self.hoopNum][here]
+                anchorData[self.hoopNum][here] = None
+                return anchorData
+        return anchorData
+    
+    def placeHoop(self):
+        foundit = False
+        for here in list(reversed(range(len(anchorData[self.hoopNum])-1))):
+            if (anchorData[self.hoopNum][here] == None) and not foundit:
+                if anchorData[self.hoopNum][here+1]>anchorData[0]:
+                    foundit = True
+                    anchorData[self.hoopNum][here] = anchorData[0]
+                    anchorData[0] = None
+                    return anchorData
+                else:
+                    return anchorData
+        return anchorData
+
+K_1content = inputMoveHoops()
+K_1content.hoopNum = 1
+K_2content = inputMoveHoops()
+K_2content.hoopNum = 2
+K_3content = inputMoveHoops()
+K_3content.hoopNum = 3
 
 
 globalRun = True
@@ -144,76 +180,37 @@ while globalRun:
                 match event.key:
                     case pygame.K_1:
                         # poleLeft
-                        if hand.holding == None: #TAKE
-                            print('take')
-                            foundit = False
-                            for iteration in list(reversed(range(numofHoops))):
-                                hand.holding = poleLeft.anchorPos[iteration][2]
-                                if hand.holding != None and not foundit:
-                                    foundit = True
-                                    hoopContainer[hand.holding].moveMe(hand.x,hand.y)
-                                    poleLeft.anchorPos[iteration][2] = None
-                                    displayUpdate = True
-                                    fORCE_ID_ON_HAND = hand.holding
-                                    
-
-                        else: # INSERT
-                            print('insert')
-                            foundit = False
-                            for iteration in list(reversed(range(numofHoops))):
-                                if poleLeft.anchorPos[iteration][2] == None:
-                                    foundit = True
-                                    print(hand.holding)
-                                    print(poleLeft.anchorPos[iteration][2])
-                                    poleLeft.anchorPos[iteration][2] = hand.holding
-                                    hoopContainer[hand.holding].moveMe(poleLeft.anchorPos[iteration][0],poleLeft.anchorPos[iteration][1])
-                                    hand.holding = None
-                                    fORCE_ID_ON_HAND = None
-                                    displayUpdate = True
-
-                        # the number disappears somehow???? why are my 2 becoming 0   
-                        hand.holding = fORCE_ID_ON_HAND
-
+                        displayUpdate = True
+                        if anchorData[0] == None:
+                            anchorData = K_1content.takeHoop()
+                        else:
+                            anchorData = K_1content.placeHoop()
+                        
                     case pygame.K_2:
-                        # poleCenter
-                        if hand.holding == None: #TAKE
-                            print('take')
-                            foundit = False
-                            for iteration in list(reversed(range(numofHoops))):
-                                hand.holding = poleCenter.anchorPos[iteration][2]
-                                if hand.holding != None and not foundit:
-                                    foundit = True
-                                    hoopContainer[hand.holding].moveMe(hand.x,hand.y)
-                                    poleCenter.anchorPos[iteration][2] = None
-                                    displayUpdate = True
-                                    fORCE_ID_ON_HAND = hand.holding
+                    #     # poleCenter
+                        foundit = False
+                        displayUpdate = True
+                        if anchorData[0] == None:
+                            anchorData = K_2content.takeHoop()
+                        else:
+                            anchorData = K_2content.placeHoop()
                                     
-
-                        else: # INSERT
-                            print('insert')
-                            foundit = False
-                            for iteration in list(reversed(range(numofHoops))):
-                                if poleCenter.anchorPos[iteration][2] == None:
-                                    foundit = True
-                                    print(hand.holding)
-                                    print(poleCenter.anchorPos[iteration][2])
-                                    poleCenter.anchorPos[iteration][2] = hand.holding
-                                    hoopContainer[hand.holding].moveMe(poleCenter.anchorPos[iteration][0],poleCenter.anchorPos[iteration][1])
-                                    hand.holding = None
-                                    fORCE_ID_ON_HAND = None
-                                    displayUpdate = True
-
-                        hand.holding = fORCE_ID_ON_HAND
+                        
                     case pygame.K_3:
-                        # poleRight
-                        if hand.holding == None:
-                            print('ok')
+                    #     # poleRight
+                        foundit = False
+                        displayUpdate = True
+                        if anchorData[0] == None:
+                            anchorData = K_3content.takeHoop()
+                        else:
+                            anchorData = K_3content.placeHoop()
                         
     if displayUpdate:
+        displayUpdate = False
         displaySurface.fill(displayColour)
         for here in range(len(poleContainer)):
             poleContainer[here].showMe()
         for here in range(len(hoopContainer)):
             hoopContainer[here].showMe()
-
+        print(anchorData)
         pygame.display.update()
