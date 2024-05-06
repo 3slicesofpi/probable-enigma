@@ -78,23 +78,6 @@ class mcqConstructor_args(menuConstructor):
                             print(f"{self.directory[here]['goto']} is now {args[self.directory[here]['goto']]}")
                         case 'inp':
                             args[self.directory[here]['goto']] = int(input(f"Change {self.directory[here]['goto']} to >>>:"))             
-args = dict(
-    penCorrect = True, #penalties
-    penTime = False,
-    penChars = False,
-    startingScore = 0, #given per game
-    givenScore = 0,
-    givenTime = 0,
-    givenChars = 0,
-    sectionTime = 0, #given per section
-    sectionChars = 0,
-    randTime = (0,0), #modifies sectionTime/sectionChars
-    randChars = (0,0),
-    randSections = (0,0),
-    numSections = 5,
-    numPuzzles = 5,
-    gamemode = 'classic',
-    deathmode = 'none')
 
 
 # class stats():
@@ -193,6 +176,28 @@ Are you sure you want to exit this program?
     else:
         return {'goto':goto}
 
+
+args = dict(
+    penCorrect = True, #penalties
+    penTime = False,
+    penChars = False,
+    startingScore = 0, #given per game
+    givenScore = 0,
+    givenTime = 0,
+    givenChars = 0,
+    sectionTime = 0, #given per section
+    sectionChars = 0,
+    randTime = (0,0), #modifies sectionTime/sectionChars
+    randChars = (0,0),
+    randSections = (0,0),
+    numSections = 5,
+    numPuzzles = 6,
+    puzzleStart = ('you','are','playing','on','default','settings'), # add these to the start of theEx.
+    puzzleEnd = ('h','e','L','l','0','!'),
+    puzzleDesc = None, #TODO
+    gamemode = 'classic',
+    deathmode = 'none')
+
 def mcqClassic():
     args = None
     content = menuConstructor('Difficulty Select')
@@ -215,11 +220,14 @@ def mcqClassic():
     givenChars = 3,
     sectionTime = 5, #given per section
     sectionChars = 2,
-    randTime = (0,0), #modifies sectionTime/sectionChars
-    randChars = (0,0),
-    randSections = (0,1),
+    randTime = [0,0], #modifies sectionTime/sectionChars
+    randChars = [0,0],
+    randSections = [0,1],
     numSections = 3,
     numPuzzles = 5,
+    puzzleStart = None,
+    puzzleEnd = None,
+    puzzleDesc = None,
     gamemode = 'classic',
     deathmode = 'none')
             if goback == 'menuCustom': #coming from mcqPresets
@@ -237,11 +245,14 @@ def mcqClassic():
     givenChars = 1,
     sectionTime = 2, #given per section
     sectionChars = 1,
-    randTime = (0,0), #modifies sectionTime/sectionChars
-    randChars = (0,0),
-    randSections = (1,2),
+    randTime = [0,0], #modifies sectionTime/sectionChars
+    randChars = [0,0],
+    randSections = [1,2],
     numSections = 4,
     numPuzzles = 5,
+    puzzleStart = None,
+    puzzleEnd = None,
+    puzzleDesc = None,
     gamemode = 'classic',
     deathmode = 'none')
             if goback == 'menuCustom': #coming from mcqPresets
@@ -259,11 +270,14 @@ def mcqClassic():
     givenChars = 1,
     sectionTime = 1, #given per section
     sectionChars = 1,
-    randTime = (0,0), #modifies sectionTime/sectionChars
-    randChars = (0,0),
-    randSections = (2,2),
+    randTime = [0,0], #modifies sectionTime/sectionChars
+    randChars = [0,0],
+    randSections = [2,2],
     numSections = 5,
     numPuzzles = 10,
+    puzzleStart = None,
+    puzzleEnd = None,
+    puzzleDesc = None,
     gamemode = 'classic',
     deathmode = 'none')
             if goback == 'menuCustom': #coming from mcqPresets
@@ -281,11 +295,14 @@ def mcqClassic():
     givenChars = 0,
     sectionTime = 0, #given per section
     sectionChars = 0,
-    randTime = (0,0), #modifies sectionTime/sectionChars
-    randChars = (0,0),
-    randSections = (1,3),
+    randTime = [0,0], #modifies sectionTime/sectionChars
+    randChars = [0,0],
+    randSections = [1,3],
     numSections = 5,
     numPuzzles = 15,
+    puzzleStart = None,
+    puzzleEnd = None,
+    puzzleDesc = None,
     gamemode = 'classic',
     deathmode = 'none')
             if goback == 'menuCustom': #coming from mcqPresets
@@ -599,7 +616,9 @@ def regexSectionConstructor(numofSections): #mk. IIA
                         theEx.append(textFactory(textFactoryMode,blacklist))
                         # blacklist.append(theEx[-1])
             case _:
-                print('eh') # plh
+                # do nothing
+                # plh
+                pass
         totalLength += sectionLength
         theQuota[numQuota] = {'type':sectionType,'textFactoryMode':textFactoryMode,'sectionLength':sectionLength}
     return {'puzzle':theEx, 'sectionLength':totalLength, 'totalLength':totalLength} #to maintain compatiablilty
@@ -635,26 +654,28 @@ def gameSession():
     #             case 5: # reduced add
                     # randNamesFloor[randSelected] = -randNamesQuantity[randSelected]
                     # randNamesCeil[randSelected] = randNamesQuantity[randSelected]-1
-    puzzleNum = 0
+    puzzleNum = -1
     if args['gamemode'] == 'endless':
         totalScore = 10
-        args['numPuzzles'] = 18446744073709551615
+        args['numPuzzles'] = 256
     else:
         totalScore = 0
     killswitch = False
+    # for here in ('puzzleStart','puzzleEnd','puzzleDesc'):
+    #         if args[here] == None:
+    #             for iteration in range(args['numPuzzles']):
+    #                 args[here][iteration] = ''
     while (puzzleNum < args['numPuzzles']):  #or killswitch):
-        if killswitch: # i guess python hates non-pythonic code?
+        if killswitch: # i guess python hates non-pythonic code? it dont work
             # use this to ensure killswitch kills gameSession
             return stats
         puzzleNum += 1
-        print('puzzle no.:',puzzleNum)
+        print('puzzle no.:',(puzzleNum+1))
         # compute totals
         totalSections = args['numSections']+rnd(args['randSections'][0],args['randSections'][1])
         totalTime = args['givenTime']+rnd(args['randTime'][0],args['randTime'][0])+totalSections*args['sectionTime']
-        match args['gamemode']:
-            case _:
-                theEx = regexSectionConstructor(totalSections)
-                theEx['puzzle'] = listJoinery(theEx['puzzle'])
+        theEx = regexSectionConstructor(totalSections)
+        theEx['puzzle'] = listJoinery(theEx['puzzle'])
         totalChars = args['givenChars']+rnd(args['randChars'][1],args['randChars'][1])+theEx['totalLength']
         if args['penTime']:
             print('In',totalTime,'seconds,')
@@ -683,22 +704,22 @@ def gameSession():
         stats.append(localStats)
 
         # check whether to end the game
-        match args['deathmode']:
-            case 'none':
-                pass
-            case 'scoredown':
-                if totalScore <=0:
-                    print('Out of Score!')
-                    killswitch = True
-                elif totalScore <=3:
-                    print('You only have',totalScore,'score left.')
-            case 'timedown':
-                timeAnchorSession += totalTime
-                if time()>timeAnchorSession:
-                    print('Out of time!')
-                    killswitch = True
-                else:
-                    print('Total time Left (Estimated):'-int(time()-timeAnchorSession)+args['givenTime']+(args['numSections']*args['sectionTime']))
+        # match args['deathmode']:
+        #     case 'none':
+        #         pass
+        #     case 'scoredown':
+        #         if totalScore <=0:
+        #             print('Out of Score!')
+        #             killswitch = True
+        #         elif totalScore <=3:
+        #             print('You only have',totalScore,'score left.')
+        #     case 'timedown':
+        #         timeAnchorSession += totalTime
+        #         if time()>timeAnchorSession:
+        #             print('Out of time!')
+        #             killswitch = True
+        #         else:
+        #             print('Total time Left (Estimated):'-int(time()-timeAnchorSession)+args['givenTime']+(args['numSections']*args['sectionTime']))
         
     return stats
         
