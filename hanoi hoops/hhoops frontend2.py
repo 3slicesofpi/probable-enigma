@@ -1,5 +1,6 @@
+import pygame
 import pygame as pg
-
+from time import time
 class HoopInstance:
     def __init__(self, x_left, y_top, width, height):
         self.thickness = height
@@ -92,45 +93,81 @@ class PoleInstance:
         return hInstance
 
 
+class Button(pg.Rect):
+    def __init__(self, x_left, y_top, width, height, text: str):
+        super().__init__(x_left, y_top, width, height)
+        self.textcontent = [font.render(i, True, (255, 255, 255)) for i in text.split('\n')]
+
+
 def redrawSurfaces():
     global updateSurfacesFLAG
     if not updateSurfacesFLAG:
         print('Redrawing Surface Canvas...')
         updateSurfacesFLAG = True
 
+def checkgamecompleted() -> bool:
+    for i in poleINFO[1:]:
+        if len(i.content) == len(hoopINFO):
+            print('Completed!'
+                  f'\n{len(hoopINFO)} Hoops, {len(poleINFO)} Poles,'
+                  f'\n{len(actionHistory)} Moves in {time() - startimeUser:.1f}s'
+                  f'\n{undocountUSER} Undos'
+                  f'\nBest Possible Move Count: {len(hoopINFO) ** 2 - 1}')
+            return True
+        else:
+            print('Not Completed!')
+            return False
+
+def undoaction() -> bool:
+    if cursor.content:
+        poleINFO[actionHistory[-1][0]].addhoop(cursor.removehoop())
+        actionHistory.pop(-1)
+        return True
+    elif len(actionHistory):
+        global undocountUSER
+        undocountUSER += 1
+        poleINFO[actionHistory[-1][0]].addhoop(poleINFO[actionHistory[-1][1]].removehoop())
+        actionHistory.pop(-1)
+        return True
+    else:
+        print('Action not successful.')
+        return False
 
 # initializing the pg import
 pg.init()
+font = pg.font.Font('freesansbold.ttf', 20)
 canvasSize = (900, 500)
 canvas = pg.display.set_mode(canvasSize)
 pg.display.set_caption('hhoops 0.2.0b InDev')
-
-
+startimeUser = 0
 # test
 actionHistory = []
 cursor = CursorInstance(0, 0)
 poleINFO = [PoleInstance(0, 0, 100, 100)]
 hoopINFO = [HoopInstance(0, 0, 100, 24)]
-# poleINFO = [PoleInstance(50, 250, 100, 100), PoleInstance(175, 250, 100, 100), PoleInstance(300, 250, 100, 100)]
-# poleINFO = [PoleInstance((0.5+i)*(canvasSize[0]/(3+1)), canvasSize[1] / 2, 24*(4+2), 100) for i in range(3)]
-# hoopINFO = [HoopInstance(100, 100, 100, 24), HoopInstance(100, 100, 80, 24), HoopInstance(100, 100, 60, 24)]
-# poleINFO[0].addhoop(hoopINFO[0])
-# poleINFO[0].addhoop(hoopINFO[1])
-# poleINFO[0].addhoop(hoopINFO[2])
-# poleINFO[0].cursorhere(cursor)
+undocountUSER = 0
+
+checkBUTTON = Button(canvasSize[0]-74, canvasSize[1]-104, 40, 180, 'C\nH\nE\nC\nK\n')
+undoBUTTON = Button(canvasSize[0]-74, canvasSize[1]-206, 40, 60, 'U\nN\nD\nO\n')
+menuBUTTON = Button(0, 24, 40, 72, 'M\nE\nN\nU\n')
 
 runningFLAG = True
 updateSurfacesFLAG = True
 kPressedFLAG = False
 
+
 def startgame(poles=3, hoops=5):
     if (poles < 2) or (hoops < 3):
         return
     if hoops > 255:
-        print('At a rate of one action every millisecond, you will be solving this puzzle unto the heat death of the universe.')
+        print('At a rate of one action every millisecond,'
+              'you will be solving this puzzle unto the heat death of the universe.')
         print('Try something simpler.')
         hoops = 254
-    global poleINFO, hoopINFO, cursor
+    global poleINFO, hoopINFO, cursor, startimeUser, actionHistory, undocountUSER
+    startimeUser = time()
+    actionHistory = []
+    undocountUSER = 0
 
     poleINFO = [PoleInstance((0.5+i)*(canvasSize[0]/(poles+1)), canvasSize[1]/2, 24*(hoops+2), (hoops+0.618)*24, 24, i) for i in range(poles)]
     pInstance = poleINFO[0]  # the first
@@ -143,6 +180,7 @@ def startgame(poles=3, hoops=5):
     cursor = CursorInstance(0, 0, canvasSize[0]//16, canvasSize[1]//30)
     pInstance.cursorhere(cursor)
 
+
 startgame()
 
 # Game loop
@@ -152,6 +190,11 @@ while runningFLAG:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             runningFLAG = False
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if checkBUTTON.collidepoint(event.pos):
+                checkgamecompleted()
+            if undoBUTTON.collidepoint(event.pos):
+                undoaction()
 
     keys = pg.key.get_pressed()
 
@@ -163,11 +206,11 @@ while runningFLAG:
         for i in hoopINFO:
             pg.draw.circle(canvas, (255, 0, 0), (i.hoopRect.x, i.hoopRect.y), 10, 1)
         pg.draw.circle(canvas, (255, 0, 0), cursor.getpoints()[0], 10, 1)
+        print(actionHistory)
 
     ptat = cursor.pointingat
     if keys[pg.K_DOWN]:  # test pole mov
         if kPressedFLAG:
-            print(actionHistory)
             if poleINFO[ptat].content and not cursor.content:  # take
                 cursor.addhoop(poleINFO[ptat].removehoop())
                 actionHistory.append([ptat, 0])
@@ -177,13 +220,27 @@ while runningFLAG:
                     actionHistory.pop(-1)
                 else:
                     actionHistory[-1][1] = ptat
+            # redrawSurfaces()
+            # print(actionHistory)
         kPressedFLAG = False
+    elif keys[pg.K_c]:
+        if kPressedFLAG:
+            checkgamecompleted()
+            # redrawSurfaces()
+    elif keys[pg.K_u]:
+        if kPressedFLAG:
+            kPressedFLAG = False
+            undoaction()
+            # redrawSurfaces()
+        else:
+            kPressedFLAG = False
     elif keys[pg.K_LEFT]:
         if kPressedFLAG:
             if ptat:
                 poleINFO[ptat-1].cursorhere(cursor)
             else:
                 poleINFO[-1].cursorhere(cursor)
+            # redrawSurfaces()
         kPressedFLAG = False
     elif keys[pg.K_RIGHT]:
         if kPressedFLAG:
@@ -191,6 +248,7 @@ while runningFLAG:
                 poleINFO[0].cursorhere(cursor)
             else:
                 poleINFO[ptat+1].cursorhere(cursor)
+            # redrawSurfaces()
         kPressedFLAG = False
     else:
         kPressedFLAG = True
@@ -204,6 +262,19 @@ while runningFLAG:
         for i in hoopINFO:
             pg.draw.rect(canvas, (0, 255, 0), i.hoopRect, 1)
         pg.draw.polygon(canvas, (0, 255, 0), cursor.getpoints())
+
+        pg.draw.rect(canvas, (0, 255, 0), checkBUTTON)
+        pg.draw.rect(canvas, (255, 0, 0), undoBUTTON)
+        pg.draw.rect(canvas, (0, 255, 0), menuBUTTON)
+
+        for i, count in zip(undoBUTTON.textcontent, range(len(undoBUTTON.textcontent))):
+            canvas.blit(i, (undoBUTTON.x+4, undoBUTTON.y+(count-1)*font.size('a')[1]))  # TEMPORARY!!! this sucks
+        for i, count in zip(checkBUTTON.textcontent, range(len(undoBUTTON.textcontent))):
+            canvas.blit(i, (checkBUTTON.x+4, checkBUTTON.y+(count-1)*font.size('a')[1]))
+        for i, count in zip(menuBUTTON.textcontent, range(len(menuBUTTON.textcontent))):
+            canvas.blit(i, (menuBUTTON.x+4, menuBUTTON.y+(count-1)*font.size('a')[1]))
+            # updateSurfacesFLAG = False
+
 
 
 
