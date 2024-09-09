@@ -1,175 +1,281 @@
+import pygame
 import pygame as pg
-import time
-import cmd  # used for overrides and manual data get
+from time import time
+class HoopInstance:
+    def __init__(self, x_left, y_top, width, height):
+        self.thickness = height
+        self.width = width
+        self.poleAddress = 0  # from left to right
+        self.polePointer = None
+        self.positAddress = 0  # start from bottom, count from 0
+        self.hoopRect = pg.Rect(x_left, y_top, width, height)
 
-pg.init()
+    def move(self, pos: [float, float]):
+        self.hoopRect.x, self.hoopRect.y = pos
 
-canvasSize = (900, 700)
-canvasName = "hhoops 0.2.0 Development"
-# CREATING CANVAS
-canvas = pg.display.set_mode(canvasSize)
-updateSurfaces = True
+    def size(self) -> int:
+        return self.width//self.thickness
 
-class Cursor:
-    def __init__(self, x=0.0, y=0.0, width=100.0, height=100.0):
-        self.x = x
-        self.y = y
+
+class CursorInstance:
+    def __init__(self, x_left, y_top, width=50, height=20):
+        self.x = x_left
+        self.y = y_top
         self.width = width
         self.height = height
         self.pointingat = 0
-        self.contentat = None
+        self.content = None
+        self.topsize = 256
 
-    def getpoints(self):
-        return (self.x + self.width / 2, self.y), (self.x, self.y + self.height), (self.x - self.width / 2, self.y)
+    def getpoints(self) -> [[float, float], [float, float], [float, float]]:
+        return (self.x, self.y), (self.x + self.width / 2, self.y + self.height), (self.x + self.width, self.y)
 
-    def moveHere(self, newPos):
-        self.x = newPos[0]
-        if newPos[1]:
-            self.y = newPos[1]
-        redrawSurfaces()
+    def addhoop(self, hInstance: HoopInstance):
+        self.content = hInstance
+        self.topsize = hInstance.size()
+        hInstance.poleAddress = -1
+        hInstance.positAddress = 0
+        hInstance.move([sum(lis) for lis in zip((self.x, self.y), (self.width/2, self.height*2))])
 
-    def movePole(self, poleAddress):
-        self.moveHere((poleINFO[poleAddress].x + poleINFO[poleAddress].baseRect.width/2, 0))
-        self.contentat = poleINFO[poleAddress]
-        self.pointingat = poleAddress
-        print(poleAddress)
-
-
-class HoopInstance(pg.Rect):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.unitsize = 256
-        self.poleAddress = 0  # from left to right
-        self.polePointer = None
-        self.positAddress = 0  # posit on pole, iter from bottom
-
-    def moveHere(self, newPos):
-        self.x = newPos[0]
-        self.y = newPos[1]
-        redrawSurfaces()
+    def removehoop(self) -> HoopInstance:
+        hInstance = self.content
+        self.content = None
+        self.topsize = 256
+        return hInstance
 
 
 class PoleInstance:
-    def __init__(self, xpos, ypos, width, height):
-        self.x = xpos
-        self.y = ypos
-        self.headRect = pg.Rect(xpos-width/2, ypos, 20, height)
-        self.baseRect = pg.Rect(xpos, ypos, width, 20)
-        self.poleAddress = 0  # from left to right
+    def __init__(self, x_left, y_top, width, height, thickness=24, position=0):
+        self.x = x_left  # origin pos
+        self.y = y_top
+        self.width = width
+        self.height = height
+        self.thickness = 24
+        self.position = position  # start from left
         self.content = []  # end of list (for some reason)
-        self.topsize = 256  # if we make this zero stuff breaks
-        self.calibratepos()
+        self.topsize = 256  # if we make it zero stuff breaks
 
-    def calibratepos(self):
-        self.headRect.x = self.x+(self.baseRect.width-self.headRect.width)/2
-        self.headRect.y = self.y
-        self.baseRect.x = self.x
-        self.baseRect.y = self.y+self.headRect.height
+        self.baseRectoffset = 0, +height
+        self.poleRectoffset = (width-thickness+3)/2, 0
+        self.poleRect = pg.Rect(x_left+width/2-thickness/2+1.5, y_top, thickness, height)
+        self.baseRect = pg.Rect(x_left, y_top+height, width, thickness)
 
-    def moveHere(self, newPos):
-        self.x, self.y = newPos
-        self.calibratepos()
-        redrawSurfaces()
+    def move(self, pos: [float, float]):
+        self.x = pos[0]
+        self.y = pos[1]
+        self.poleRect.x, self.poleRect.y = [sum(lis) for lis in zip(pos, self.poleRectoffset)]
+        self.baseRect.x, self.baseRect.y = [sum(lis) for lis in zip(pos, self.baseRectoffset)]
+        self.cursorhere(cursor)
+        for i in self.content:
+            i.move([sum(lis) for lis in zip((self.x, self.y), self.baseRectoffset, (self.width/2-i.width/2, -(i.positAddress+1)*self.thickness))])
 
-def startgame(hoopcount=4, polecount=3):  # incl. globals
-    """This is very slow"""
-    if (hoopcount < 2) or (polecount < 3):
-        return
-    global hoopCount
-    hoopCount = hoopcount
-    global poleCount
-    poleCount = polecount
-    global poleINFO
-    poleINFO = []
-    global hoopINFO
-    hoopINFO = []
-    global cursor
-    polewidth = (hoopcount+0.45)*25
-    # Creating the PoleInstance
-    # the first one will be very important... save it for later!
-    for i in reversed(range(polecount)):
-        newInstance = PoleInstance((i+1)*canvasSize[0]/hoopcount-polewidth/2, canvasSize[1]/3, polewidth, (hoopcount+1.75)*25)
-        newInstance.poleAddress = i
-        poleINFO.append(newInstance)
-    try:
-        newInstance = newInstance
-    except:
-        return
+    def cursorhere(self, cur: CursorInstance):
+        cur.x = self.poleRect.x+(self.thickness-cur.width)/2
+        cur.y = self.y-canvasSize[1]/5
+        if cur.content:
+            cur.content.move((cur.x, cur.y))
+        cur.pointingat = self.position
 
-    # Creating the HoopInstance...
-    for i in reversed(range(hoopcount)):
-        hInstance = HoopInstance(0, newInstance.baseRect.y-25-i*25, (hoopcount - i) * 25, 25)
-        hInstance.unitsize = hoopcount - i
-        hInstance.x = newInstance.x+newInstance.baseRect.width/2-(hoopcount - i) * 12.5 + 1
-        hInstance.poleAddress = 0
-        hInstance.polePointer = newInstance
-        hoopINFO.append(hInstance)
+    def addhoop(self, hInstance: HoopInstance):
+        self.content.append(hInstance)
+        self.topsize = hInstance.size()
+        hInstance.poleAddress = self.position
+        hInstance.positAddress = len(self.content)-1
+        hInstance.move([sum(lis) for lis in zip((self.x, self.y), self.baseRectoffset, (self.width/2-hInstance.width/2, -(hInstance.positAddress+1)*self.thickness))])
 
-    # creating the CursorInstance...
-    cursor = Cursor(newInstance.x + newInstance.baseRect.width/2, canvasSize[1]/5, canvasSize[0]/24, canvasSize[0]/40)
-    cursor.contentat = newInstance
+    def removehoop(self) -> HoopInstance:
+        hInstance = self.content[-1]
+        self.content.pop(-1)
+        if self.content:
+            self.topsize = self.content[-1].size()
+        else:
+            self.topsize = 256
+        return hInstance
 
 
-cursor = Cursor(0, 0, 0, 0)
-hoopINFO = [HoopInstance(100, 10, 100, 10)]
-hoopCount = 1  # length of hoopInfo
-poleINFO = [PoleInstance(200, 200, 100, 100)]
-poleCount = 1  # length of poleInfo
+class Button(pg.Rect):
+    def __init__(self, x_left, y_top, width, height, text: str):
+        super().__init__(x_left, y_top, width, height)
+        self.textcontent = [font.render(i, True, (255, 255, 255)) for i in text.split('\n')]
 
-startgame()
-for i in poleINFO:
-    print(i.poleAddress)
 
 def redrawSurfaces():
-    global updateSurfaces
-    if not updateSurfaces:
+    global updateSurfacesFLAG
+    if not updateSurfacesFLAG:
         print('Redrawing Surface Canvas...')
-        updateSurfaces = True
+        updateSurfacesFLAG = True
+
+def checkgamecompleted() -> bool:
+    for i in poleINFO[1:]:
+        if len(i.content) == len(hoopINFO):
+            print('Completed!'
+                  f'\n{len(hoopINFO)} Hoops, {len(poleINFO)} Poles,'
+                  f'\n{len(actionHistory)} Moves in {time() - startimeUser:.1f}s'
+                  f'\n{undocountUSER} Undos'
+                  f'\nBest Possible Move Count: {len(hoopINFO) ** 2 - 1}')
+            return True
+        else:
+            print('Not Completed!')
+            return False
+
+def undoaction() -> bool:
+    if cursor.content:
+        poleINFO[actionHistory[-1][0]].addhoop(cursor.removehoop())
+        actionHistory.pop(-1)
+        return True
+    elif len(actionHistory):
+        global undocountUSER
+        undocountUSER += 1
+        poleINFO[actionHistory[-1][0]].addhoop(poleINFO[actionHistory[-1][1]].removehoop())
+        actionHistory.pop(-1)
+        return True
+    else:
+        print('Action not successful.')
+        return False
+
+# initializing the pg import
+pg.init()
+font = pg.font.Font('freesansbold.ttf', 20)
+canvasSize = (900, 500)
+canvas = pg.display.set_mode(canvasSize)
+pg.display.set_caption('hhoops 0.2.0b InDev')
+startimeUser = 0
+# test
+actionHistory = []
+cursor = CursorInstance(0, 0)
+poleINFO = [PoleInstance(0, 0, 100, 100)]
+hoopINFO = [HoopInstance(0, 0, 100, 24)]
+undocountUSER = 0
+
+checkBUTTON = Button(canvasSize[0]-74, canvasSize[1]-104, 40, 180, 'C\nH\nE\nC\nK\n')
+undoBUTTON = Button(canvasSize[0]-74, canvasSize[1]-206, 40, 60, 'U\nN\nD\nO\n')
+menuBUTTON = Button(0, 24, 40, 72, 'M\nE\nN\nU\n')
+
+runningFLAG = True
+updateSurfacesFLAG = True
+kPressedFLAG = False
 
 
-# TITLE OF CANVAS
-pg.display.set_caption(canvasName)
-exitFLAG = False
+def startgame(poles=3, hoops=5):
+    if (poles < 2) or (hoops < 3):
+        return
+    if hoops > 255:
+        print('At a rate of one action every millisecond,'
+              'you will be solving this puzzle unto the heat death of the universe.')
+        print('Try something simpler.')
+        hoops = 254
+    global poleINFO, hoopINFO, cursor, startimeUser, actionHistory, undocountUSER
+    startimeUser = time()
+    actionHistory = []
+    undocountUSER = 0
 
-# STARTING LOOP
-redrawSurfaces()
-kpressedFLAG = 0
-while not exitFLAG:
+    poleINFO = [PoleInstance((0.5+i)*(canvasSize[0]/(poles+1)), canvasSize[1]/2, 24*(hoops+2), (hoops+0.618)*24, 24, i) for i in range(poles)]
+    pInstance = poleINFO[0]  # the first
+
+    hoopINFO = []
+    for i in range(hoops):
+        hoopINFO.append(HoopInstance(0, 0, (hoops-i+1)*24, 24))
+        pInstance.addhoop(hoopINFO[-1])
+
+    cursor = CursorInstance(0, 0, canvasSize[0]//16, canvasSize[1]//30)
+    pInstance.cursorhere(cursor)
+
+
+startgame()
+
+# Game loop
+while runningFLAG:
+    # Check for event if user has pushed
+    # any event in queue
     for event in pg.event.get():
         if event.type == pg.QUIT:
-            exitFLAG = True
+            runningFLAG = False
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if checkBUTTON.collidepoint(event.pos):
+                checkgamecompleted()
+            if undoBUTTON.collidepoint(event.pos):
+                undoaction()
+            redrawSurfaces()
 
     keys = pg.key.get_pressed()
-    if keys[pg.K_DOWN]:
-        redrawSurfaces()
-    if keys[pg.K_UP]:
-        hoopINFO[0].moveHere((200, 200))
-    if keys[pg.K_RIGHT]:
-        if not kpressedFLAG:
-            cursor.pointingat -= 1
-            if cursor.pointingat < 0:
-                cursor.pointingat = poleCount-1
-            cursor.movePole(cursor.pointingat)
-        kpressedFLAG += 1
-    elif keys[pg.K_LEFT]:
-        if not kpressedFLAG:
-            cursor.pointingat += 1
-            if cursor.pointingat > poleCount-1:
-                cursor.pointingat = 0
-            cursor.movePole(cursor.pointingat)
-        kpressedFLAG += 1
-    else:
-        kpressedFLAG = 0
 
-    if updateSurfaces:
-        pg.display.update()
-        canvas.fill((10, 10, 10))
-        print(cursor.pointingat)
+    if keys[pg.K_UP]:  # draw all objects' origins
         for i in poleINFO:
-            pg.draw.rect(canvas, (0, 0, 255), i.headRect)
-            pg.draw.rect(canvas,(0, 0, 255), i.baseRect)
+            pg.draw.circle(canvas, (255, 0, 0), (i.x, i.y), 10, 1)
+            pg.draw.circle(canvas, (0, 255, 0), (i.poleRect.x, i.poleRect.y), 5, 1)
+            pg.draw.circle(canvas, (0, 0, 255), (i.baseRect.x, i.baseRect.y), 5, 1)
         for i in hoopINFO:
-            pg.draw.rect(canvas, (255, 0, 0), i)
+            pg.draw.circle(canvas, (255, 0, 0), (i.hoopRect.x, i.hoopRect.y), 10, 1)
+        pg.draw.circle(canvas, (255, 0, 0), cursor.getpoints()[0], 10, 1)
+        print(actionHistory)
+
+    ptat = cursor.pointingat
+    if keys[pg.K_DOWN]:  # test pole mov
+        if kPressedFLAG:
+            if poleINFO[ptat].content and not cursor.content:  # take
+                cursor.addhoop(poleINFO[ptat].removehoop())
+                actionHistory.append([ptat, 0])
+            elif cursor.content and cursor.topsize < poleINFO[ptat].topsize:  # place
+                poleINFO[ptat].addhoop(cursor.removehoop())
+                if actionHistory[-1][0] == ptat:
+                    actionHistory.pop(-1)
+                else:
+                    actionHistory[-1][1] = ptat
+            redrawSurfaces()
+            # print(actionHistory)
+        kPressedFLAG = False
+    elif keys[pg.K_c]:
+        if kPressedFLAG:
+            checkgamecompleted()
+            redrawSurfaces()
+    elif keys[pg.K_u]:
+        if kPressedFLAG:
+            kPressedFLAG = False
+            undoaction()
+            redrawSurfaces()
+        else:
+            kPressedFLAG = False
+    elif keys[pg.K_LEFT]:
+        if kPressedFLAG:
+            if ptat:
+                poleINFO[ptat-1].cursorhere(cursor)
+            else:
+                poleINFO[-1].cursorhere(cursor)
+            redrawSurfaces()
+        kPressedFLAG = False
+    elif keys[pg.K_RIGHT]:
+        if kPressedFLAG:
+            if ptat == len(poleINFO)-1:
+                poleINFO[0].cursorhere(cursor)
+            else:
+                poleINFO[ptat+1].cursorhere(cursor)
+            redrawSurfaces()
+        kPressedFLAG = False
+    else:
+        kPressedFLAG = True
+
+    if updateSurfacesFLAG:
+        print('a')
+        canvas.fill((10, 10, 10))
+        for i in poleINFO:
+            pg.draw.rect(canvas, (255, 0, 0), i.poleRect, 1)
+            pg.draw.rect(canvas, (255, 0, 0), i.baseRect, 1)
+        for i in hoopINFO:
+            pg.draw.rect(canvas, (0, 255, 0), i.hoopRect, 1)
         pg.draw.polygon(canvas, (0, 255, 0), cursor.getpoints())
-        updateSurfaces = False
+
+        pg.draw.rect(canvas, (0, 255, 0), checkBUTTON)
+        pg.draw.rect(canvas, (255, 0, 0), undoBUTTON)
+        pg.draw.rect(canvas, (0, 255, 0), menuBUTTON)
+
+        for i, count in zip(undoBUTTON.textcontent, range(len(undoBUTTON.textcontent))):
+            canvas.blit(i, (undoBUTTON.x+4, undoBUTTON.y+(count-1)*font.size('a')[1]))  # TEMPORARY!!! this sucks
+
+        for i, count in zip(checkBUTTON.textcontent, range(len(undoBUTTON.textcontent))):
+            canvas.blit(i, (checkBUTTON.x+4, checkBUTTON.y+(count-1)*font.size('a')[1]))
+        for i, count in zip(menuBUTTON.textcontent, range(len(menuBUTTON.textcontent))):
+            canvas.blit(i, (menuBUTTON.x+4, menuBUTTON.y+(count-1)*font.size('a')[1]))
+            updateSurfacesFLAG = False
+        pg.display.update()
+
 
