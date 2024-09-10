@@ -12,24 +12,28 @@ class Colours:
     fullsky = (0, 255, 255)
     basicdarkgrey = (50, 50, 50)
     basicgrey = (100, 100, 100)
-    basiclightgrey = (150, 150, 150)
+    basiclightgrey = (155, 155, 155)
     basicdarkwhite = (200, 200, 200)
     basicred = (200, 50, 50)
     basicgreen = (50, 200, 50)
     basicblue = (50, 50, 200)
-    darkred = (155, 50, 50)
-    darkgreen = (50, 155, 50)
-    darkblue = (50, 50, 155)
+    darkred = (105, 20, 20)
+    darkgreen = (20, 105, 20)
+    darkblue = (20, 20, 105)
+    lightred = (200, 150, 150)
+    lightblue = (150, 150, 200)
+    lightgreen = (150, 200, 150)
 
 
 class HoopInstance:
-    def __init__(self, x_left, y_top, width, height):
+    def __init__(self, x_left, y_top, width, height, colour=Colours.basicblue):
         self.thickness = height
         self.width = width
         self.poleAddress = 0  # from left to right
         self.polePointer = None
         self.positAddress = 0  # start from bottom, count from 0
         self.hoopRect = pg.Rect(x_left, y_top, width, height)
+        self.colour = colour
 
     def move(self, pos: [float, float]):
         self.hoopRect.x, self.hoopRect.y = pos
@@ -37,9 +41,12 @@ class HoopInstance:
     def size(self) -> int:
         return self.width//self.thickness
 
+    def render(self):
+        pg.draw.rect(canvas, self.colour, self.hoopRect)
+
 
 class CursorInstance:
-    def __init__(self, x_left, y_top, width=50, height=20):
+    def __init__(self, x_left, y_top, width=50, height=20, colour=Colours.fullgreen):
         self.x = x_left
         self.y = y_top
         self.width = width
@@ -47,6 +54,7 @@ class CursorInstance:
         self.pointingat = 0
         self.content = None
         self.topsize = 256
+        self.colour = colour
 
     def getpoints(self) -> [[float, float], [float, float], [float, float]]:
         return (self.x, self.y), (self.x + self.width / 2, self.y + self.height), (self.x + self.width, self.y)
@@ -69,11 +77,15 @@ class CursorInstance:
         self.topsize = 256
         return hInstance
 
+    def render(self):
+        pg.draw.polygon(canvas, self.colour, self.getpoints())
+
 
 class PoleInstance:
-    def __init__(self, x_left, y_top, width, height, thickness=24, position=0):
+    def __init__(self, x_left, y_top, width, height, thickness=24, position=0, colour=Colours.basicred):
         self.x = x_left  # origin pos
         self.y = y_top
+        self.colour = colour
         self.width = width
         self.height = height
         self.thickness = 24
@@ -117,11 +129,16 @@ class PoleInstance:
             self.topsize = 256
         return hInstance
 
+    def render(self):
+        pg.draw.rect(canvas, self.colour, self.poleRect)
+        pg.draw.rect(canvas, self.colour, self.baseRect)
+
 
 class Button(pg.Rect):
     def __init__(self, x_left, y_top, width, height, text: str, textCol=Colours.basicdarkwhite):
         super().__init__(x_left, y_top, width, height)
         self.textcontent = [font.render(i, True, textCol) for i in text.split('\n')]
+
 
 class Slider:
     def __init__(self, x_left, y_top, width, height, thickness, text: str, limits: (int, int)):
@@ -136,7 +153,7 @@ class Slider:
         self.limit = limits
 
     def updatetext(self, newtext):
-        self.text = font.render(newtext, True, (255, 255, 255))
+        self.text = font.render(newtext, True, Colours.basicdarkwhite)
 
     def pressdec(self):
         if self.value == self.limit[0]:
@@ -152,11 +169,13 @@ class Slider:
             self.value += 1
             self.updatetext(f"{self.textcontent} {self.value}")
 
+
 def redrawSurfaces():
     global updateSurfacesFLAG
     if not updateSurfacesFLAG:
         print('Redrawing Surface Canvas...')
         updateSurfacesFLAG = True
+
 
 def checkgamecompleted() -> bool:
     for i in poleINFO[1:]:
@@ -174,6 +193,7 @@ def checkgamecompleted() -> bool:
             print('Not Completed!')
     return False
 
+
 def undoaction() -> bool:
     if cursor.content:
         poleINFO[actionHistory[-1][0]].addhoop(cursor.removehoop())
@@ -189,18 +209,20 @@ def undoaction() -> bool:
         print('Action not successful.')
         return False
 
+
 def showmenu():
     global showmenuFLAG
     if not showmenuFLAG:
         print('Showing Menu...')
         showmenuFLAG = True
 
+
 # initializing the pg import
 pg.init()
 font = pg.font.Font('freesansbold.ttf', 20)
-canvasSize = (900, 500)
+canvasSize = (1000, 600)
 canvas = pg.display.set_mode(canvasSize)
-pg.display.set_caption('hhoops 0.2.4b Alpha')
+pg.display.set_caption('Prototype 2 -- hhoops 0.2.5 Alpha Release')
 startimeUser = 0
 # test
 actionHistory = []
@@ -211,7 +233,7 @@ undocountUSER = 0
 
 checkBUTTON = Button(canvasSize[0]-40, canvasSize[1]/2+100, 40, 180, 'C\nH\nE\nC\nK\n', Colours.darkgreen)
 undoBUTTON = Button(canvasSize[0]-40, canvasSize[1]/2, 40, 60, 'U\nN\nD\nO\n', Colours.darkred)
-menuBUTTON = Button(0, 24, 40, 72, 'M\nE\nN\nU\n', Colours.fullwhite)
+menuBUTTON = Button(0, 24, 40, 72, 'M\nE\nN\nU\n', Colours.darkblue)
 
 menuScreen = pg.Rect(canvasSize[0]/10, canvasSize[1]/10, canvasSize[0]*0.8, canvasSize[1]*0.8)
 closemenuBUTTON = Button(menuScreen.x, menuScreen.y, 55, 20, 'X', Colours.fullwhite)
@@ -240,7 +262,7 @@ def startgame(poles=3, hoops=5):
     actionHistory = []
     undocountUSER = 0
 
-    poleINFO = [PoleInstance((0.5+i)*(canvasSize[0]/(poles+1)), canvasSize[1]/2, 24*(hoops+2), (hoops+0.618)*24, 24, i) for i in range(poles)]
+    poleINFO = [PoleInstance((0.5+i)*(canvasSize[0]/(poles+1)), canvasSize[1]/2-(hoops+0.618)*10, 24*(hoops+2), (hoops+0.618)*24, 24, i) for i in range(poles)]
     pInstance = poleINFO[0]  # the first
 
     hoopINFO = []
@@ -258,6 +280,8 @@ startgame()
 while runningFLAG:
     # Check for event if user has pushed
     # any event in queue
+
+    # MOSTLY COLLISION DETECTION
     for event in pg.event.get():
         if event.type == pg.QUIT:
             runningFLAG = False
@@ -306,6 +330,7 @@ while runningFLAG:
             redrawSurfaces()
 
     keys = pg.key.get_pressed()
+    # CONTROL
 
     if keys[pg.K_UP]:  # draw all objects' origins
         for i in poleINFO:
@@ -345,7 +370,7 @@ while runningFLAG:
         else:
             kPressedFLAG = False
     elif keys[pg.K_r]:
-        if kPressedFLAG:  # just so i wont blow up the computer when startgame is called
+        if kPressedFLAG:  # just so I won't blow up the computer when startgame is called
             startgame(numpolesSLIDER.value, numhoopsSLIDER.value)
             showmenuFLAG = False
             redrawSurfaces()
@@ -373,25 +398,6 @@ while runningFLAG:
     if updateSurfacesFLAG:
         canvas.fill(Colours.basicdarkwhite)
 
-        if not showmenuFLAG or showendFLAG:
-            for i in poleINFO:
-                pg.draw.rect(canvas, Colours.basicred, i.poleRect)
-                pg.draw.rect(canvas, Colours.basicred, i.baseRect)
-            for i in hoopINFO:
-                pg.draw.rect(canvas, Colours.basicblue, i.hoopRect)
-            pg.draw.polygon(canvas, Colours.fullgreen, cursor.getpoints())
-
-            pg.draw.rect(canvas, Colours.basicgreen, checkBUTTON)
-            pg.draw.rect(canvas, Colours.basicred, undoBUTTON)
-            pg.draw.rect(canvas, Colours.basiclightgrey, menuBUTTON)
-
-            for i, count in zip(undoBUTTON.textcontent, range(len(undoBUTTON.textcontent))):
-                canvas.blit(i, (undoBUTTON.x+4, undoBUTTON.y+(count-1)*font.size('a')[1]-4))  # TEMPORARY!!! this sucks
-            for i, count in zip(checkBUTTON.textcontent, range(len(checkBUTTON.textcontent))):
-                canvas.blit(i, (checkBUTTON.x+4, checkBUTTON.y+(count-1)*font.size('a')[1]-4))
-            for i, count in zip(menuBUTTON.textcontent, range(len(menuBUTTON.textcontent))):
-                canvas.blit(i, (menuBUTTON.width-font.size('A')[0]-4, menuBUTTON.y+(count-1)*font.size('a')[1]-4))
-
         if showendFLAG or showmenuFLAG:
             pg.draw.rect(canvas, Colours.basiclightgrey, menuScreen)
 
@@ -404,30 +410,46 @@ while runningFLAG:
             pg.draw.rect(canvas, Colours.basicred, quitgameBUTTON)
             canvas.blit(quitgameBUTTON.textcontent[0], (quitgameBUTTON.center[0], quitgameBUTTON.center[1]))
 
-        if showmenuFLAG:
-            canvas.blit(font.render('SELECT DIFFICULTY', True, Colours.fullwhite), (menuScreen.center[0]-font.size('SELECT DIFFICULTY')[0]/2, menuScreen.y-4))
+            if showmenuFLAG:
+                canvas.blit(font.render('SELECT DIFFICULTY', True, Colours.fullblack), (menuScreen.center[0]-font.size('SELECT DIFFICULTY')[0]/2, menuScreen.y-4))
 
-            pg.draw.rect(canvas, Colours.basicred, closemenuBUTTON)
-            canvas.blit(closemenuBUTTON.textcontent[0], (closemenuBUTTON.x+4, closemenuBUTTON.y-4))
+                pg.draw.rect(canvas, Colours.basicred, closemenuBUTTON)
+                canvas.blit(closemenuBUTTON.textcontent[0], (closemenuBUTTON.x+4, closemenuBUTTON.y-4))
 
-            pg.draw.rect(canvas, Colours.basicgrey, numhoopsSLIDER.backRect)
-            pg.draw.rect(canvas, Colours.basicgreen, numhoopsSLIDER.increaseRect)
-            pg.draw.rect(canvas, Colours.basicred, numhoopsSLIDER.decreaseRect)
-            canvas.blit(numhoopsSLIDER.text, (numhoopsSLIDER.backRect.center[0]-numhoopsSLIDER.text.__sizeof__()/2-12, numhoopsSLIDER.backRect.center[1]-font.size('a')[1]/2))
+                pg.draw.rect(canvas, Colours.basicgrey, numhoopsSLIDER.backRect)
+                pg.draw.rect(canvas, Colours.basicgreen, numhoopsSLIDER.increaseRect)
+                pg.draw.rect(canvas, Colours.basicred, numhoopsSLIDER.decreaseRect)
+                canvas.blit(numhoopsSLIDER.text, (numhoopsSLIDER.backRect.center[0]-numhoopsSLIDER.text.__sizeof__()/2-12, numhoopsSLIDER.backRect.center[1]-font.size('a')[1]/2))
 
-            pg.draw.rect(canvas, Colours.basicgrey, numpolesSLIDER.backRect)
-            pg.draw.rect(canvas, Colours.basicgreen, numpolesSLIDER.increaseRect)
-            pg.draw.rect(canvas, Colours.basicred, numpolesSLIDER.decreaseRect)
-            canvas.blit(numpolesSLIDER.text, (numpolesSLIDER.backRect.center[0]-numpolesSLIDER.text.__sizeof__()/2-12, numpolesSLIDER.backRect.center[1] - font.size('a')[1] / 2))
+                pg.draw.rect(canvas, Colours.basicgrey, numpolesSLIDER.backRect)
+                pg.draw.rect(canvas, Colours.basicgreen, numpolesSLIDER.increaseRect)
+                pg.draw.rect(canvas, Colours.basicred, numpolesSLIDER.decreaseRect)
+                canvas.blit(numpolesSLIDER.text, (numpolesSLIDER.backRect.center[0]-numpolesSLIDER.text.__sizeof__()/2-12, numpolesSLIDER.backRect.center[1] - font.size('a')[1] / 2))
 
 
-        if showendFLAG:
-            canvas.blit(font.render('COMPLETE', True, Colours.fullblack), (menuScreen.center[0]-font.size('THE MENU')[0]/2, menuScreen.y-4))
+            if showendFLAG:
+                canvas.blit(font.render('COMPLETE', True, Colours.fullblack), (menuScreen.center[0]-font.size('THE MENU')[0]/2, menuScreen.y-4))
 
-            for i, count in zip(endtext, range(len(endtext))):
-                canvas.blit(i, (menuScreen.x+48, menuScreen.y+24+font.size('a')[1]*count))
+                for i, count in zip(endtext, range(len(endtext))):
+                    canvas.blit(i, (menuScreen.x+48, menuScreen.y+24+font.size('a')[1]*count))
+
+        else:
+            for i in poleINFO:
+                i.render()
+            for i in hoopINFO:
+                i.render()
+            cursor.render()
+
+            pg.draw.rect(canvas, Colours.lightgreen, checkBUTTON)
+            pg.draw.rect(canvas, Colours.lightred, undoBUTTON)
+            pg.draw.rect(canvas, Colours.lightblue, menuBUTTON)
+
+            for i, count in zip(undoBUTTON.textcontent, range(len(undoBUTTON.textcontent))):
+                canvas.blit(i, (undoBUTTON.x+4, undoBUTTON.y+(count-1)*font.size('a')[1]-4))  # TEMPORARY!!! this sucks
+            for i, count in zip(checkBUTTON.textcontent, range(len(checkBUTTON.textcontent))):
+                canvas.blit(i, (checkBUTTON.x+4, checkBUTTON.y+(count-1)*font.size('a')[1]-4))
+            for i, count in zip(menuBUTTON.textcontent, range(len(menuBUTTON.textcontent))):
+                canvas.blit(i, (menuBUTTON.width-font.size('A')[0]-4, menuBUTTON.y+(count-1)*font.size('a')[1]-4))
 
         updateSurfacesFLAG = False
         pg.display.update()
-
-
