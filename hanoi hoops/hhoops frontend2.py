@@ -285,7 +285,7 @@ while runningFLAG:
     for event in pg.event.get():
         if event.type == pg.QUIT:
             runningFLAG = False
-        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+        if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
             if checkBUTTON.collidepoint(event.pos):
                 checkgamecompleted()
             if undoBUTTON.collidepoint(event.pos):
