@@ -1,7 +1,7 @@
 
 
 def cartBecomesEmpty(): # fast and efficient, unlike menuMoveItem(lF,lT,None,None)
-    for here in range(0,len(cart)):
+    for here in range(0, len(cart)):
         catalog[here]['quantity'] = cart[here]['quantity']
         cart[here]['quantity'] = 0
     return

@@ -93,9 +93,12 @@ class CartClass:
     def get_value_list(self) -> list:
         return [dynamic.count * static.cost - dynamic.discount for static, dynamic in zip(self.staticContent.values(), self.dynamicContent.values())]
 
-    def set_count_list(self, *count):
-        for count, dynamic in zip(count, self.dynamicContent.values()):
-            dynamic.count = count
+    def get_count_list(self) -> list:
+        return [dynamic.count for dynamic in self.dynamicContent.values()]
+
+    def set_count_list(self, count) -> None:
+        for i, dynamic in zip(count, self.dynamicContent.values()):
+            dynamic.count = i
 
 
 def itemsearch_init(items):
@@ -126,7 +129,7 @@ categoriesearch = itemsearch_init(categories)
 invCart.add_item_list(items)
 userCart.add_item_list(items)
 
-invCart.set_count_list(100, 120, 2931, 1)
+invCart.set_count_list((100, 120, 2931, 1))
 
 class MainMenu(cmd.Cmd):
     def do_view(self, arg):
@@ -224,6 +227,20 @@ class MainMenu(cmd.Cmd):
             invCart.modify_count(target, number)
             print('Moved', number, items[target].name, 'to cart')
 
+
+    def do_empty(self, arg):
+        if arg:
+            pass
+        else:
+            if not input('Are you sure you want to empty your cart?\nPress any key to confirm'
+                     '\nPress [ENTER] to cancel\nInput Argument >>:'):
+                return
+        newlist = [sum(i) for i in zip(invCart.get_count_list(), userCart.get_count_list())]
+        invCart.set_count_list(newlist)
+        userCart.set_count_list([0 for i in range(len(newlist))])
+        print(invCart.get_count_list())
+        print(userCart.get_count_list())
+
     def do_quit(self, arg):
         if arg:
             raise SystemExit
@@ -231,6 +248,7 @@ class MainMenu(cmd.Cmd):
             if input('Are you sure you want to quit?\nPress any key to exit'
                      '\nPress [ENTER] to cancel\nInput Argument >>:'):
                 raise SystemExit
+
 
 prompt = MainMenu()
 prompt.prompt = 'Input Command >>:'
