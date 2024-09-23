@@ -22,7 +22,7 @@ class CategoryClass:
 class ItemClassStatic:
     def __init__(self, id: str, name: str, cost: float, category: CategoryClass, longname: str=False):
         self.id = id
-        category.content[name] = self
+        category.content[id] = self
         self.category = category
         self.name = name
         if longname:
@@ -34,7 +34,7 @@ class ItemClassStatic:
 
 
     def add_ItemClassDynamic(self, dest, count: int=0):
-        dest.dynamicContent[self.id] = ItemClassDynamic(self.id, count)
+        dest.dynamicContent[self.id] = ItemClassDynamic(self.id, self.name, count)
 
     def get_information(self) -> dict:
         return {'id': self.id,
@@ -47,7 +47,7 @@ class ItemClassStatic:
 
 
 class ItemClassDynamic:
-    def __init__(self,id: str, name: str, count: int=0):
+    def __init__(self, id: str, name: str, count: int=0):
         self.id = id
         self.name = name
         self.count = count
@@ -97,17 +97,31 @@ class CartClass:
         for count, dynamic in zip(count, self.dynamicContent.values()):
             dynamic.count = count
 
+
+def itemsearch_init(items):
+    """Returns a list of possible user resp. Works (mostly) for cats too."""
+    dict = {}
+    for item in items.values():
+        dict[item.id] = [item.id.lower(), item.name.lower(), item.longname.lower()]
+    return dict
+
+
 invCart = CartClass('INVB','invCart')
 userCart = CartClass('USEB','userCart')
 
-testCategory = CategoryClass('TESC','monty')
+testCategory = CategoryClass('TESC', 'monty')
 
 items = {'BE00': ItemClassStatic('BE00', 'beans', 1, testCategory),
          'EGG1': ItemClassStatic('EGG1', 'egg', 1, testCategory),
          'TOAD': ItemClassStatic('TOAD', 'toast', 100, testCategory),
          'SAM1': ItemClassStatic('SAM1', 'spam', 2, testCategory)}
 
+
+itemsearch = itemsearch_init(items)
+
 categories = {'TESC': testCategory}
+
+categoriesearch = itemsearch_init(categories)
 
 invCart.add_item_list(items)
 userCart.add_item_list(items)
@@ -122,18 +136,58 @@ class MainMenu(cmd.Cmd):
             print(f"{info['count']}x | {info['name']} | {info['cost']} | {info['id']}")
 
     def do_start(self, arg):
-        for i in categories.values():
-            info = i.get_information()
+        typ = None
+        if arg.upper() in categoriesearch.keys():
+            arg = arg.upper()
+            typ = 'category'
+        else:
+            for i in categoriesearch.keys():
+                if arg in categoriesearch[i]:
+                    arg = i
+                    typ = 'category'
+                    continue
+        if arg.upper() in itemsearch.keys():
+            arg.upper()
+            typ = 'item'
+        elif not typ:
+            for i in itemsearch.keys():
+                if arg.lower() in itemsearch[i]:
+                    arg = i
+                    typ = 'item'
+                    continue
+        if typ == 'category':
+            info = categories[arg].get_information()
+            print(f"{info['id']} | {info['longname']} | {info['description']}")
+            for i in categories[arg].content.keys():
+                contentinfo = invCart.get_information(i)
+                print(f"{contentinfo['count']}x | "
+                      f"{contentinfo['id']} - {contentinfo['longname'].capitalize()} | "
+                      f"${contentinfo['cost']} | "
+                      f"{contentinfo['description']}")
+        elif typ == 'item':
+            info = invCart.get_information(arg)
+            print(f"{info['count']} | {info['id']} - {info['longname']} | {info['cost']} | {info['category']}")
             if info['description']:
-                infodesc = info['description']
-            else:
-                infodesc = ''
-            print(f"{info['id']} | {info['longname']} | {infodesc}")
-
+                print(info['description'])
+        else:
+            for i in categories.values():
+                info = i.get_information()
+                print(f"{info['id']} - {info['longname']} | ", end='')
+                if info['description']:
+                    print(info['description'])
+                else:
+                    print('')
 
     def do_move(self, arg):
         try:
             target, number = [str(s) for s in arg.split(',')]
+            if target.upper() in itemsearch.keys():
+                target.upper()
+            else:
+                for i in itemsearch.keys():
+                    if target.lower() in itemsearch[i]:
+                        target = i
+                        continue
             number = int(number)
         except:
             print('Invalid Argument!')
@@ -150,6 +204,13 @@ class MainMenu(cmd.Cmd):
     def do_return(self, arg):
         try:
             target, number = [str(s) for s in arg.split(',')]
+            if target.upper() in itemsearch.keys():
+                target = target.upper()
+            else:
+                for i in itemsearch.keys():
+                    if target.lower() in itemsearch[i]:
+                        target = i
+                        continue
             number = int(number)
         except:
             print('Invalid Argument!')
