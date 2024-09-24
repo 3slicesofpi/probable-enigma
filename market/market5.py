@@ -109,8 +109,8 @@ def itemsearch_init(items):
     return dict
 
 
-invCart = CartClass('INVB','invCart')
-userCart = CartClass('USEB','userCart')
+invCart = CartClass('INVB', 'invCart')
+userCart = CartClass('USEB', 'userCart')
 
 testCategory = CategoryClass('TESC', 'monty')
 
