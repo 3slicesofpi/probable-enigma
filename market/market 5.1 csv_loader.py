@@ -1,23 +1,36 @@
 
 import csv
-filename = 'market 0.5raw.csv'
+itemsname = 'market 0.5raw.csv'
+categoriesname = 'market 0.5raw1.csv'
 
-fields = ('id', 'name', 'longname', 'cost', 'description')
-info = (
-    ('BE00', 'bean', 'beans', 1, 'beans'),
-    ('EGG1', 'egg', 'fried egg', 2.1, 'uncooked fried egg'),
-    ('20AD', 'toast', 'charred bread', 1.11, ''),
-    ('PAM3', 'spam', 'canned spam', 20, 'insert ham copypasta here')
-        )
+categoriesfields = ('id', 'name', 'longname', 'desc')
+categoriesinfo = (
+    ('TESC', 'monty', 'monty', ''),
+)
 
-with open(filename, 'w', newline='') as csvfile:
+itemfields = ('id', 'name', 'longname', 'category', 'cost', 'description')
+iteminfo = (
+    ('BE00', 'bean', 'beans', 'TESC', '1', 'beance'),
+    ('EGG1', 'egg', 'fried egg', 'TESC', '2.1', 'uncooked fried egg'),
+    ('20AD', 'toast', 'charred bread', 'TESC', '1.11', ''),
+    ('PAM3', 'spam', 'canned spam', 'TESC', '20', 'insert ham copypasta here')
+)
+
+with open(itemsname, 'w', newline='') as csvfile:
     # creating a csv writer object
     csvwriter = csv.writer(csvfile)
     # writing the fields
-    csvwriter.writerow(fields)
-    csvwriter.writerows(info)
+    csvwriter.writerow(itemfields)
+    csvwriter.writerows(iteminfo)
 
-with open(filename, 'r') as csvfile:
+with open(categoriesname, 'w', newline='') as csvfile:
+    # creating a csv writer object
+    csvwriter = csv.writer(csvfile)
+    # writing the fields
+    csvwriter.writerow(categoriesfields)
+    csvwriter.writerows(categoriesinfo)
+
+with open(itemsname, 'r') as csvfile:
     # creating a csv reader object
     csvreader = csv.reader(csvfile)
     fields = next(csvreader)
